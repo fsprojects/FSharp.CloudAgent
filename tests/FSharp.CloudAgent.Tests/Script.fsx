@@ -14,7 +14,7 @@ open FSharp.CloudAgent.Connections
 open FSharp.CloudAgent.Messaging
 
 // Connection strings to different service bus queues
-let connectionString = ConnectionString "Endpoint=sb://yourSb.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=key"
+let connectionString = ConnectionString "Endpoint=sb://yourServiceBus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=yourKey"
 let workerConn = WorkerCloudConnection(connectionString, Queue "workerQueue")
 let actorConn = ActorCloudConnection(connectionString, Queue "actorQueue")
 
@@ -33,13 +33,14 @@ let createBasicAgent (ActorKey actorKey) =
         })
 
 // Start listening for messages without any error resilience
-ConnectionFactory.StartListening(workerConn, createBasicAgent >> BasicCloudAgent)
+let disposable = ConnectionFactory.StartListening(workerConn, createBasicAgent >> BasicCloudAgent)
 
 // Send a message to the worker pool
 { Name = "Isaac"; Age = 34 }
-|> ConnectionFactory.SendToWorkerCloud workerConn
+|> ConnectionFactory.SendToWorkerPool workerConn
 |> Async.RunSynchronously
 
+disposable.Dispose()
 
 
 
@@ -68,7 +69,7 @@ ConnectionFactory.StartListening(workerConn, createResilientAgent >> ResilientCl
 
 // Send a message to the worker pool
 { Name = "Isaac"; Age = 34 } 
-|> ConnectionFactory.SendToWorkerCloud workerConn
+|> ConnectionFactory.SendToWorkerPool workerConn
 |> Async.RunSynchronously
 
 
@@ -77,10 +78,11 @@ ConnectionFactory.StartListening(workerConn, createResilientAgent >> ResilientCl
 (* ------------- Actor-based F# Agents using Service Bus sessions to ensure synchronisation of messages--------------- *)
 
 // Start listening for actor messages with built-in error resilient
-ConnectionFactory.StartListening(actorConn, createResilientAgent >> ResilientCloudAgent)
+let actorDisposable = ConnectionFactory.StartListening(actorConn, createResilientAgent >> ResilientCloudAgent)
 
 // Send a message 
 { Name = "Isaac"; Age = 34 } 
-|> ConnectionFactory.SendToActorCloud actorConn (ActorKey "Fred")
+|> ConnectionFactory.SendToActorPool actorConn (ActorKey "Tim")
 |> Async.RunSynchronously
 
+actorDisposable.Dispose()

@@ -97,9 +97,11 @@ module internal Helpers =
                     async {
                         match agent with
                         | BasicCloudAgent agent ->
+                            // Do not wait for a response - just return success.
                             agent.Post messageBody
                             return Completed
                         | ResilientCloudAgent agent ->
+                            // Wait for the response and return it.
                             let! processingResult = agent.PostAndAsyncReply(fun ch -> messageBody, ch.Reply) |> Async.CatchException
                             return
                                 match processingResult with
@@ -111,19 +113,21 @@ module internal Helpers =
     
     /// Asynchronously gets the "next" item, repeatedly calling the supply getItem function
     /// until it returns something.
-    let rec WithAutomaticRetry getItem pollTime =
-        async {
-            printfn "Asking stream for more data.."
-            let! session = getItem() |> Async.CatchException
-            match session with
-            | Error _ | Result None ->
-                printfn "Nothing returned, sleeping."
-                do! Async.Sleep(pollTime)
-                return! WithAutomaticRetry getItem pollTime
-            | Result (Some value) ->
-                printfn "Got something!"
-                return value
-        }
+    let withAutomaticRetry getItem pollTime =
+        let rec continuePolling() =
+            async {
+                printfn "Asking stream for more data.."
+                let! session = getItem() |> Async.CatchException
+                match session with
+                | Error _ | Result None ->
+                    printfn "Nothing returned, sleeping."
+                    do! Async.Sleep(pollTime)
+                    return! continuePolling()
+                | Result (Some value) ->
+                    printfn "Got something!"
+                    return value
+            }
+        continuePolling()
     
 /// Manages dispatching of messages to a service bus queue.
 [<AutoOpen>]
