@@ -1,0 +1,1 @@
+FSharp.CloudAgent is a simple framework for making distributed F# Agents in the cloud with the minimum of hassle. See http://isaacabraham.github.io/FSharp.CloudAgent/ for full documentation.
