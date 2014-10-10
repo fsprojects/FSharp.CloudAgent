@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Tutorial
+</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Allows the use of F# Agents in Azure."/>
+    <meta name="author" content="Isaac Abraham"/>
+
+    <script src="https://code.jquery.com/jquery-1.8.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.8.23/jquery-ui.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet"/>
+
+    <link type="text/css" rel="stylesheet" href="/FSharp.CloudAgent/content/style.css" />
+    <script type="text/javascript" src="/FSharp.CloudAgent/content/tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+      <div class="masthead">
+        <ul class="nav nav-pills pull-right">
+          <li><a href="http://fsharp.org">fsharp.org</a></li>
+          <li><a href="http://github.com/isaacabraham/FSharp.CloudAgent">github page</a></li>
+        </ul>
+        <h3 class="muted"><a href="/FSharp.CloudAgent/index.html">FSharp.CloudAgent</a></h3>
+      </div>
+      <hr />
+      <div class="row">
+        <div class="span9" id="main">
+          
+<h1>Tutorial</h1>
+
+<h2>Getting up and running</h2>
+
+<p>Creating a simple distributable Agent is as simple as creating a regular agent, wrapping it
+in a generator function and then binding that function to a service bus queue.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip">
+<span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+<span class="l">19: </span>
+<span class="l">20: </span>
+<span class="l">21: </span>
+<span class="l">22: </span>
+<span class="l">23: </span>
+<span class="l">24: </span>
+<span class="l">25: </span>
+</pre>
+</td>
+<td class="snippet"><pre class="fssnip">
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 1)" onmouseover="showTip(event, 'fs1', 1)" class="i">FSharp</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs2', 2)" onmouseover="showTip(event, 'fs2', 2)" class="i">CloudAgent</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 3)" onmouseover="showTip(event, 'fs1', 3)" class="i">FSharp</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs2', 4)" onmouseover="showTip(event, 'fs2', 4)" class="i">CloudAgent</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs3', 5)" onmouseover="showTip(event, 'fs3', 5)" class="i">Messaging</span>
+<span class="k">open</span> <span onmouseout="hideTip(event, 'fs1', 6)" onmouseover="showTip(event, 'fs1', 6)" class="i">FSharp</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs2', 7)" onmouseover="showTip(event, 'fs2', 7)" class="i">CloudAgent</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs4', 8)" onmouseover="showTip(event, 'fs4', 8)" class="i">Connections</span>
+
+<span class="c">// Standard Azure Service Bus connection string</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs5', 9)" onmouseover="showTip(event, 'fs5', 9)" class="i">serviceBusConnection</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs6', 10)" onmouseover="showTip(event, 'fs6', 10)" class="i">ServiceBusConnection</span> <span class="s">&quot;</span><span class="s">servicebusconnectionstringgoeshere</span><span class="s">&quot;</span>
+
+<span class="c">// A DTO</span>
+<span class="k">type</span> <span onmouseout="hideTip(event, 'fs7', 11)" onmouseover="showTip(event, 'fs7', 11)" class="i">Person</span> <span class="o">=</span> { <span onmouseout="hideTip(event, 'fs8', 12)" onmouseover="showTip(event, 'fs8', 12)" class="i">Name</span> <span class="o">:</span> <span onmouseout="hideTip(event, 'fs9', 13)" onmouseover="showTip(event, 'fs9', 13)" class="i">string</span>; <span onmouseout="hideTip(event, 'fs10', 14)" onmouseover="showTip(event, 'fs10', 14)" class="i">Age</span> <span class="o">:</span> <span onmouseout="hideTip(event, 'fs11', 15)" onmouseover="showTip(event, 'fs11', 15)" class="i">int</span> }
+
+<span class="c">// A function which creates an Agent on demand.</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs12', 16)" onmouseover="showTip(event, 'fs12', 16)" class="i">createASimpleAgent</span> <span onmouseout="hideTip(event, 'fs13', 17)" onmouseover="showTip(event, 'fs13', 17)" class="i">agentId</span> <span class="o">=</span>
+    <span onmouseout="hideTip(event, 'fs14', 18)" onmouseover="showTip(event, 'fs14', 18)" class="i">MailboxProcessor</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs15', 19)" onmouseover="showTip(event, 'fs15', 19)" class="i">Start</span>(<span class="k">fun</span> <span onmouseout="hideTip(event, 'fs16', 20)" onmouseover="showTip(event, 'fs16', 20)" class="i">inbox</span> <span class="k">-&gt;</span>
+        <span onmouseout="hideTip(event, 'fs17', 21)" onmouseover="showTip(event, 'fs17', 21)" class="i">async</span> {
+            <span class="k">while</span> <span class="k">true</span> <span class="k">do</span>
+                <span class="k">let!</span> <span onmouseout="hideTip(event, 'fs18', 22)" onmouseover="showTip(event, 'fs18', 22)" class="i">message</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs16', 23)" onmouseover="showTip(event, 'fs16', 23)" class="i">inbox</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs19', 24)" onmouseover="showTip(event, 'fs19', 24)" class="i">Receive</span>()
+                <span onmouseout="hideTip(event, 'fs20', 25)" onmouseover="showTip(event, 'fs20', 25)" class="i">printfn</span> <span class="s">&quot;</span><span class="s">%</span><span class="s">s</span><span class="s"> </span><span class="s">is</span><span class="s"> </span><span class="s">%</span><span class="s">d</span><span class="s"> </span><span class="s">years</span><span class="s"> </span><span class="s">old</span><span class="s">.</span><span class="s">&quot;</span> <span onmouseout="hideTip(event, 'fs18', 26)" onmouseover="showTip(event, 'fs18', 26)" class="i">message</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs8', 27)" onmouseover="showTip(event, 'fs8', 27)" class="i">Name</span> <span onmouseout="hideTip(event, 'fs18', 28)" onmouseover="showTip(event, 'fs18', 28)" class="i">message</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs10', 29)" onmouseover="showTip(event, 'fs10', 29)" class="i">Age</span>
+        })
+
+<span class="c">// Create a worker cloud connection to the Service Bus Queue &quot;myMessageQueue&quot;</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs21', 30)" onmouseover="showTip(event, 'fs21', 30)" class="i">cloudConnection</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs22', 31)" onmouseover="showTip(event, 'fs22', 31)" class="i">WorkerCloudConnection</span>(<span onmouseout="hideTip(event, 'fs5', 32)" onmouseover="showTip(event, 'fs5', 32)" class="i">serviceBusConnection</span>, <span onmouseout="hideTip(event, 'fs23', 33)" onmouseover="showTip(event, 'fs23', 33)" class="i">Queue</span> <span class="s">&quot;</span><span class="s">myMessageQueue</span><span class="s">&quot;</span>)
+
+<span class="c">// Start listening! A local pool of agents will be created that will receive messages.</span>
+<span class="c">// Service bus messages will be automatically deserialised into the required message type.</span>
+<span onmouseout="hideTip(event, 'fs24', 34)" onmouseover="showTip(event, 'fs24', 34)" class="i">ConnectionFactory</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 35)" onmouseover="showTip(event, 'fs25', 35)" class="i">StartListening</span>(<span onmouseout="hideTip(event, 'fs21', 36)" onmouseover="showTip(event, 'fs21', 36)" class="i">cloudConnection</span>, <span onmouseout="hideTip(event, 'fs12', 37)" onmouseover="showTip(event, 'fs12', 37)" class="i">createASimpleAgent</span> <span class="o">&gt;</span><span class="o">&gt;</span> <span onmouseout="hideTip(event, 'fs26', 38)" onmouseover="showTip(event, 'fs26', 38)" class="i">BasicCloudAgent</span>)</pre>
+</td>
+</tr>
+</table>
+
+<h2>Posting messages to agents</h2>
+
+<p>You can elect to natively send messages to the service bus (as long as the serialisation
+format matches i.e. JSON .NET). However, FSharp.CloudAgent includes some handy helper functions
+to do this for you.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip">
+<span class="l">1: </span>
+<span class="l">2: </span>
+<span class="l">3: </span>
+<span class="l">4: </span>
+<span class="l">5: </span>
+<span class="l">6: </span>
+</pre>
+</td>
+<td class="snippet"><pre class="fssnip">
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs27', 39)" onmouseover="showTip(event, 'fs27', 39)" class="i">sendToMyMessageQueue</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs24', 40)" onmouseover="showTip(event, 'fs24', 40)" class="i">ConnectionFactory</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs28', 41)" onmouseover="showTip(event, 'fs28', 41)" class="i">SendToWorkerPool</span> <span onmouseout="hideTip(event, 'fs21', 42)" onmouseover="showTip(event, 'fs21', 42)" class="i">cloudConnection</span>
+
+<span class="c">// These messages will be processed in parallel across the worker pool.</span>
+<span onmouseout="hideTip(event, 'fs27', 43)" onmouseover="showTip(event, 'fs27', 43)" class="i">sendToMyMessageQueue</span> { <span class="i">Name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="s">Isaac</span><span class="s">&quot;</span>; <span class="i">Age</span> <span class="o">=</span> <span class="n">34</span> }
+<span onmouseout="hideTip(event, 'fs27', 44)" onmouseover="showTip(event, 'fs27', 44)" class="i">sendToMyMessageQueue</span> { <span class="i">Name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="s">Michael</span><span class="s">&quot;</span>; <span class="i">Age</span> <span class="o">=</span> <span class="n">32</span> }
+<span onmouseout="hideTip(event, 'fs27', 45)" onmouseover="showTip(event, 'fs27', 45)" class="i">sendToMyMessageQueue</span> { <span class="i">Name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="s">Sam</span><span class="s">&quot;</span>; <span class="i">Age</span> <span class="o">=</span> <span class="n">27</span> }</pre>
+</td>
+</tr>
+</table>
+
+<h2>Creating Resilient Agents</h2>
+
+<p>We can also create "Resilient" agents. These are standard F# Agents that take advantage of the
+Reply Channel functionality inherent in F# agents to allow us to signal back to Azure whether
+or not a message was processed correctly or not, which in turn gives us automatic retry and dead
+letter functionality that is included with Azure Service Bus.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip">
+<span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+</pre>
+</td>
+<td class="snippet"><pre class="fssnip">
+<span class="c">// A function which creates a Resilient Agent on demand.</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs29', 46)" onmouseover="showTip(event, 'fs29', 46)" class="i">createAResilientAgent</span> <span onmouseout="hideTip(event, 'fs13', 47)" onmouseover="showTip(event, 'fs13', 47)" class="i">agentId</span> <span class="o">=</span>
+    <span onmouseout="hideTip(event, 'fs14', 48)" onmouseover="showTip(event, 'fs14', 48)" class="i">MailboxProcessor</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs15', 49)" onmouseover="showTip(event, 'fs15', 49)" class="i">Start</span>(<span class="k">fun</span> <span onmouseout="hideTip(event, 'fs30', 50)" onmouseover="showTip(event, 'fs30', 50)" class="i">inbox</span> <span class="k">-&gt;</span>
+        <span onmouseout="hideTip(event, 'fs17', 51)" onmouseover="showTip(event, 'fs17', 51)" class="i">async</span> {
+            <span class="k">while</span> <span class="k">true</span> <span class="k">do</span>
+                <span class="k">let!</span> <span onmouseout="hideTip(event, 'fs18', 52)" onmouseover="showTip(event, 'fs18', 52)" class="i">message</span>, <span onmouseout="hideTip(event, 'fs31', 53)" onmouseover="showTip(event, 'fs31', 53)" class="i">replyChannel</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs30', 54)" onmouseover="showTip(event, 'fs30', 54)" class="i">inbox</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs19', 55)" onmouseover="showTip(event, 'fs19', 55)" class="i">Receive</span>()
+                <span onmouseout="hideTip(event, 'fs20', 56)" onmouseover="showTip(event, 'fs20', 56)" class="i">printfn</span> <span class="s">&quot;</span><span class="s">%</span><span class="s">s</span><span class="s"> </span><span class="s">is</span><span class="s"> </span><span class="s">%</span><span class="s">d</span><span class="s"> </span><span class="s">years</span><span class="s"> </span><span class="s">old</span><span class="s">.</span><span class="s">&quot;</span> <span class="i">message</span><span class="o">.</span><span class="i">Name</span> <span class="i">message</span><span class="o">.</span><span class="i">Age</span>
+                <span class="k">let</span> <span onmouseout="hideTip(event, 'fs32', 57)" onmouseover="showTip(event, 'fs32', 57)" class="i">processingResult</span> <span class="o">=</span>
+                    <span class="k">match</span> <span onmouseout="hideTip(event, 'fs18', 58)" onmouseover="showTip(event, 'fs18', 58)" class="i">message</span> <span class="k">with</span>
+                    | { <span class="i">Name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="s">Isaac</span><span class="s">&quot;</span> } <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs33', 59)" onmouseover="showTip(event, 'fs33', 59)" class="i">Completed</span> <span class="c">// all good, message was processed</span>
+                    | { <span class="i">Name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="s">Richard</span><span class="s">&quot;</span> } <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs34', 60)" onmouseover="showTip(event, 'fs34', 60)" class="i">Failed</span> <span class="c">// error occurred, try again</span>
+                    | _ <span class="k">-&gt;</span> <span onmouseout="hideTip(event, 'fs35', 61)" onmouseover="showTip(event, 'fs35', 61)" class="i">Abandoned</span> <span class="c">// give up with this message.</span>
+                <span onmouseout="hideTip(event, 'fs31', 62)" onmouseover="showTip(event, 'fs31', 62)" class="i">replyChannel</span> <span onmouseout="hideTip(event, 'fs32', 63)" onmouseover="showTip(event, 'fs32', 63)" class="i">processingResult</span>
+        })
+
+<span class="c">// Start listening! A local pool of agents will be created that will receive messages.</span>
+<span onmouseout="hideTip(event, 'fs24', 64)" onmouseover="showTip(event, 'fs24', 64)" class="i">ConnectionFactory</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 65)" onmouseover="showTip(event, 'fs25', 65)" class="i">StartListening</span>(<span onmouseout="hideTip(event, 'fs21', 66)" onmouseover="showTip(event, 'fs21', 66)" class="i">cloudConnection</span>, <span onmouseout="hideTip(event, 'fs29', 67)" onmouseover="showTip(event, 'fs29', 67)" class="i">createAResilientAgent</span> <span class="o">&gt;</span><span class="o">&gt;</span> <span onmouseout="hideTip(event, 'fs36', 68)" onmouseover="showTip(event, 'fs36', 68)" class="i">ResilientCloudAgent</span>)</pre>
+</td>
+</tr>
+</table>
+
+<h2>Creating distributed Actors</h2>
+
+<p>In addition to the massively distributable messages seen above, we can also create agents which are
+threadsafe not only within the context of a process but also in the context of multiple processes on
+different machines. This is made possible by Azure Service Bus session support. To turn an agent into
+an actor, we simply change the connection and the way in which we post messages.</p>
+
+<table class="pre"><tr><td class="lines"><pre class="fssnip">
+<span class="l"> 1: </span>
+<span class="l"> 2: </span>
+<span class="l"> 3: </span>
+<span class="l"> 4: </span>
+<span class="l"> 5: </span>
+<span class="l"> 6: </span>
+<span class="l"> 7: </span>
+<span class="l"> 8: </span>
+<span class="l"> 9: </span>
+<span class="l">10: </span>
+<span class="l">11: </span>
+<span class="l">12: </span>
+<span class="l">13: </span>
+<span class="l">14: </span>
+<span class="l">15: </span>
+<span class="l">16: </span>
+<span class="l">17: </span>
+<span class="l">18: </span>
+</pre>
+</td>
+<td class="snippet"><pre class="fssnip">
+<span class="c">// Create an actor cloud connection to the Service Bus Queue &quot;myActorQueue&quot;. This queue must have</span>
+<span class="c">// Session support turned on.</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs37', 69)" onmouseover="showTip(event, 'fs37', 69)" class="i">actorConnection</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs38', 70)" onmouseover="showTip(event, 'fs38', 70)" class="i">ActorCloudConnection</span>(<span onmouseout="hideTip(event, 'fs5', 71)" onmouseover="showTip(event, 'fs5', 71)" class="i">serviceBusConnection</span>, <span onmouseout="hideTip(event, 'fs23', 72)" onmouseover="showTip(event, 'fs23', 72)" class="i">Queue</span> <span class="s">&quot;</span><span class="s">myActorQueue</span><span class="s">&quot;</span>)
+
+<span class="c">// Start listening! Agents will be created as required for messages sent to new actors.</span>
+<span onmouseout="hideTip(event, 'fs24', 73)" onmouseover="showTip(event, 'fs24', 73)" class="i">ConnectionFactory</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs25', 74)" onmouseover="showTip(event, 'fs25', 74)" class="i">StartListening</span>(<span onmouseout="hideTip(event, 'fs37', 75)" onmouseover="showTip(event, 'fs37', 75)" class="i">actorConnection</span>, <span onmouseout="hideTip(event, 'fs12', 76)" onmouseover="showTip(event, 'fs12', 76)" class="i">createASimpleAgent</span> <span class="o">&gt;</span><span class="o">&gt;</span> <span onmouseout="hideTip(event, 'fs26', 77)" onmouseover="showTip(event, 'fs26', 77)" class="i">BasicCloudAgent</span>)
+
+<span class="c">// Send some messages to the actor pool</span>
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs39', 78)" onmouseover="showTip(event, 'fs39', 78)" class="i">sendToMyActorQueue</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs24', 79)" onmouseover="showTip(event, 'fs24', 79)" class="i">ConnectionFactory</span><span class="o">.</span><span onmouseout="hideTip(event, 'fs40', 80)" onmouseover="showTip(event, 'fs40', 80)" class="i">SendToActorPool</span> <span onmouseout="hideTip(event, 'fs37', 81)" onmouseover="showTip(event, 'fs37', 81)" class="i">actorConnection</span>
+
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs41', 82)" onmouseover="showTip(event, 'fs41', 82)" class="i">sendToFred</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs39', 83)" onmouseover="showTip(event, 'fs39', 83)" class="i">sendToMyActorQueue</span> (<span onmouseout="hideTip(event, 'fs42', 84)" onmouseover="showTip(event, 'fs42', 84)" class="i">ActorKey</span> <span class="s">&quot;</span><span class="s">Fred</span><span class="s">&quot;</span>)
+<span class="k">let</span> <span onmouseout="hideTip(event, 'fs43', 85)" onmouseover="showTip(event, 'fs43', 85)" class="i">sendToMax</span> <span class="o">=</span> <span onmouseout="hideTip(event, 'fs39', 86)" onmouseover="showTip(event, 'fs39', 86)" class="i">sendToMyActorQueue</span> (<span onmouseout="hideTip(event, 'fs42', 87)" onmouseover="showTip(event, 'fs42', 87)" class="i">ActorKey</span> <span class="s">&quot;</span><span class="s">Max</span><span class="s">&quot;</span>)
+
+<span class="c">// The first two messages will be sent in sequence to the same agent in the same process.</span>
+<span class="c">// The last message will be sent to a different agent, potentially in another process.</span>
+<span onmouseout="hideTip(event, 'fs41', 88)" onmouseover="showTip(event, 'fs41', 88)" class="i">sendToFred</span> { <span class="i">Name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="s">Isaac</span><span class="s">&quot;</span>; <span class="i">Age</span> <span class="o">=</span> <span class="n">34</span> }
+<span onmouseout="hideTip(event, 'fs41', 89)" onmouseover="showTip(event, 'fs41', 89)" class="i">sendToFred</span> { <span class="i">Name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="s">Michael</span><span class="s">&quot;</span>; <span class="i">Age</span> <span class="o">=</span> <span class="n">32</span> }
+<span onmouseout="hideTip(event, 'fs43', 90)" onmouseover="showTip(event, 'fs43', 90)" class="i">sendToMax</span> { <span class="i">Name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="s">Sam</span><span class="s">&quot;</span>; <span class="i">Age</span> <span class="o">=</span> <span class="n">27</span> }</pre>
+</td>
+</tr>
+</table>
+
+<div class="tip" id="fs1">namespace FSharp</div>
+<div class="tip" id="fs2">namespace FSharp.CloudAgent</div>
+<div class="tip" id="fs3">namespace FSharp.CloudAgent.Messaging</div>
+<div class="tip" id="fs4">namespace FSharp.CloudAgent.Connections</div>
+<div class="tip" id="fs5">val serviceBusConnection : ServiceBusConnection<br /><br />Full name: Tutorial.serviceBusConnection</div>
+<div class="tip" id="fs6">Multiple items<br />union case ServiceBusConnection.ServiceBusConnection: string -&gt; ServiceBusConnection<br /><br />--------------------<br />type ServiceBusConnection = | ServiceBusConnection of string<br /><br />Full name: FSharp.CloudAgent.Connections.ServiceBusConnection</div>
+<div class="tip" id="fs7">type Person =<br />&#160;&#160;{Name: string;<br />&#160;&#160;&#160;Age: int;}<br /><br />Full name: Tutorial.Person</div>
+<div class="tip" id="fs8">Person.Name: string</div>
+<div class="tip" id="fs9">Multiple items<br />val string : value:&#39;T -&gt; string<br /><br />Full name: Microsoft.FSharp.Core.Operators.string<br /><br />--------------------<br />type string = System.String<br /><br />Full name: Microsoft.FSharp.Core.string</div>
+<div class="tip" id="fs10">Person.Age: int</div>
+<div class="tip" id="fs11">Multiple items<br />val int : value:&#39;T -&gt; int (requires member op_Explicit)<br /><br />Full name: Microsoft.FSharp.Core.Operators.int<br /><br />--------------------<br />type int = int32<br /><br />Full name: Microsoft.FSharp.Core.int<br /><br />--------------------<br />type int&lt;&#39;Measure&gt; = int<br /><br />Full name: Microsoft.FSharp.Core.int&lt;_&gt;</div>
+<div class="tip" id="fs12">val createASimpleAgent : agentId:&#39;a -&gt; MailboxProcessor&lt;Person&gt;<br /><br />Full name: Tutorial.createASimpleAgent</div>
+<div class="tip" id="fs13">val agentId : &#39;a</div>
+<div class="tip" id="fs14">Multiple items<br />type MailboxProcessor&lt;&#39;Msg&gt; =<br />&#160;&#160;interface IDisposable<br />&#160;&#160;new : body:(MailboxProcessor&lt;&#39;Msg&gt; -&gt; Async&lt;unit&gt;) * ?cancellationToken:CancellationToken -&gt; MailboxProcessor&lt;&#39;Msg&gt;<br />&#160;&#160;member Post : message:&#39;Msg -&gt; unit<br />&#160;&#160;member PostAndAsyncReply : buildMessage:(AsyncReplyChannel&lt;&#39;Reply&gt; -&gt; &#39;Msg) * ?timeout:int -&gt; Async&lt;&#39;Reply&gt;<br />&#160;&#160;member PostAndReply : buildMessage:(AsyncReplyChannel&lt;&#39;Reply&gt; -&gt; &#39;Msg) * ?timeout:int -&gt; &#39;Reply<br />&#160;&#160;member PostAndTryAsyncReply : buildMessage:(AsyncReplyChannel&lt;&#39;Reply&gt; -&gt; &#39;Msg) * ?timeout:int -&gt; Async&lt;&#39;Reply option&gt;<br />&#160;&#160;member Receive : ?timeout:int -&gt; Async&lt;&#39;Msg&gt;<br />&#160;&#160;member Scan : scanner:(&#39;Msg -&gt; Async&lt;&#39;T&gt; option) * ?timeout:int -&gt; Async&lt;&#39;T&gt;<br />&#160;&#160;member Start : unit -&gt; unit<br />&#160;&#160;member TryPostAndReply : buildMessage:(AsyncReplyChannel&lt;&#39;Reply&gt; -&gt; &#39;Msg) * ?timeout:int -&gt; &#39;Reply option<br />&#160;&#160;...<br /><br />Full name: Microsoft.FSharp.Control.MailboxProcessor&lt;_&gt;<br /><br />--------------------<br />new : body:(MailboxProcessor&lt;&#39;Msg&gt; -&gt; Async&lt;unit&gt;) * ?cancellationToken:System.Threading.CancellationToken -&gt; MailboxProcessor&lt;&#39;Msg&gt;</div>
+<div class="tip" id="fs15">static member MailboxProcessor.Start : body:(MailboxProcessor&lt;&#39;Msg&gt; -&gt; Async&lt;unit&gt;) * ?cancellationToken:System.Threading.CancellationToken -&gt; MailboxProcessor&lt;&#39;Msg&gt;</div>
+<div class="tip" id="fs16">val inbox : MailboxProcessor&lt;Person&gt;</div>
+<div class="tip" id="fs17">val async : AsyncBuilder<br /><br />Full name: Microsoft.FSharp.Core.ExtraTopLevelOperators.async</div>
+<div class="tip" id="fs18">val message : Person</div>
+<div class="tip" id="fs19">member MailboxProcessor.Receive : ?timeout:int -&gt; Async&lt;&#39;Msg&gt;</div>
+<div class="tip" id="fs20">val printfn : format:Printf.TextWriterFormat&lt;&#39;T&gt; -&gt; &#39;T<br /><br />Full name: Microsoft.FSharp.Core.ExtraTopLevelOperators.printfn</div>
+<div class="tip" id="fs21">val cloudConnection : CloudConnection<br /><br />Full name: Tutorial.cloudConnection</div>
+<div class="tip" id="fs22">union case CloudConnection.WorkerCloudConnection: ServiceBusConnection * Queue -&gt; CloudConnection</div>
+<div class="tip" id="fs23">Multiple items<br />union case Queue.Queue: string -&gt; Queue<br /><br />--------------------<br />type Queue = | Queue of string<br /><br />Full name: FSharp.CloudAgent.Connections.Queue</div>
+<div class="tip" id="fs24">module ConnectionFactory<br /><br />from FSharp.CloudAgent</div>
+<div class="tip" id="fs25">val StartListening : cloudConnection:CloudConnection * createAgentFunc:(ActorKey -&gt; CloudAgentKind&lt;&#39;a&gt;) -&gt; System.IDisposable<br /><br />Full name: FSharp.CloudAgent.ConnectionFactory.StartListening</div>
+<div class="tip" id="fs26">union case CloudAgentKind.BasicCloudAgent: MailboxProcessor&lt;&#39;a&gt; -&gt; CloudAgentKind&lt;&#39;a&gt;</div>
+<div class="tip" id="fs27">val sendToMyMessageQueue : (Person -&gt; Async&lt;unit&gt;)<br /><br />Full name: Tutorial.sendToMyMessageQueue</div>
+<div class="tip" id="fs28">val SendToWorkerPool : connection:CloudConnection -&gt; message:&#39;a -&gt; Async&lt;unit&gt;<br /><br />Full name: FSharp.CloudAgent.ConnectionFactory.SendToWorkerPool</div>
+<div class="tip" id="fs29">val createAResilientAgent : agentId:&#39;a -&gt; MailboxProcessor&lt;Person * (MessageProcessedStatus -&gt; unit)&gt;<br /><br />Full name: Tutorial.createAResilientAgent</div>
+<div class="tip" id="fs30">val inbox : MailboxProcessor&lt;Person * (MessageProcessedStatus -&gt; unit)&gt;</div>
+<div class="tip" id="fs31">val replyChannel : (MessageProcessedStatus -&gt; unit)</div>
+<div class="tip" id="fs32">val processingResult : MessageProcessedStatus</div>
+<div class="tip" id="fs33">union case MessageProcessedStatus.Completed: MessageProcessedStatus</div>
+<div class="tip" id="fs34">union case MessageProcessedStatus.Failed: MessageProcessedStatus</div>
+<div class="tip" id="fs35">union case MessageProcessedStatus.Abandoned: MessageProcessedStatus</div>
+<div class="tip" id="fs36">union case CloudAgentKind.ResilientCloudAgent: MailboxProcessor&lt;&#39;a * (MessageProcessedStatus -&gt; unit)&gt; -&gt; CloudAgentKind&lt;&#39;a&gt;</div>
+<div class="tip" id="fs37">val actorConnection : CloudConnection<br /><br />Full name: Tutorial.actorConnection</div>
+<div class="tip" id="fs38">union case CloudConnection.ActorCloudConnection: ServiceBusConnection * Queue -&gt; CloudConnection</div>
+<div class="tip" id="fs39">val sendToMyActorQueue : (ActorKey -&gt; Person -&gt; Async&lt;unit&gt;)<br /><br />Full name: Tutorial.sendToMyActorQueue</div>
+<div class="tip" id="fs40">val SendToActorPool : connection:CloudConnection -&gt; ActorKey -&gt; message:&#39;a -&gt; Async&lt;unit&gt;<br /><br />Full name: FSharp.CloudAgent.ConnectionFactory.SendToActorPool</div>
+<div class="tip" id="fs41">val sendToFred : (Person -&gt; Async&lt;unit&gt;)<br /><br />Full name: Tutorial.sendToFred</div>
+<div class="tip" id="fs42">Multiple items<br />union case ActorKey.ActorKey: string -&gt; ActorKey<br /><br />--------------------<br />type ActorKey = | ActorKey of string<br /><br />Full name: FSharp.CloudAgent.ActorKey</div>
+<div class="tip" id="fs43">val sendToMax : (Person -&gt; Async&lt;unit&gt;)<br /><br />Full name: Tutorial.sendToMax</div>
+
+        </div>
+        <div class="span3">
+          <img src="/FSharp.CloudAgent/img/logo.png" alt="F# Project" style="width:150px;margin:10px" />  
+          <ul class="nav nav-list" id="menu" style="margin-top: 20px;">
+            <li class="nav-header">FSharp.CloudAgent</li>
+            <li><a href="/FSharp.CloudAgent/index.html">Home page</a></li>
+            <li class="divider"></li>
+            <li><a href="http://nuget.org/packages/FSharp.CloudAgent">Get Library via NuGet</a></li>
+            <li><a href="http://github.com/isaacabraham/FSharp.CloudAgent">Source Code on GitHub</a></li>
+            <li><a href="http://github.com/isaacabraham/FSharp.CloudAgent/blob/master/LICENSE.txt">License</a></li>
+            <li><a href="http://github.com/isaacabraham/FSharp.CloudAgent/blob/master/RELEASE_NOTES.md">Release Notes</a></li>
+            
+            <li class="nav-header">Getting started</li>
+            <li><a href="/FSharp.CloudAgent/tutorial.html">Sample tutorial</a></li>
+
+            <li class="nav-header">Documentation</li>
+            <li><a href="/FSharp.CloudAgent/reference/index.html">API Reference</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <a href="http://github.com/isaacabraham/FSharp.CloudAgent"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"/></a>
+  </body>
+  </html>
