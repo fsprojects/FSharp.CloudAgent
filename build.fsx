@@ -149,7 +149,7 @@ Target "GenerateReferenceDocs" (fun _ ->
 )
 
 Target "GenerateHelp" (fun _ ->
-    if not <| executeFSIWithArgs "docs/tools" "generate.fsx" ["--define:HELP"] [] then
+    if not <| executeFSIWithArgs "docs/tools" "generate.fsx" ["--define:RELEASE"; "--define:HELP"] [] then
       failwith "generating help documentation failed"
 )
 
