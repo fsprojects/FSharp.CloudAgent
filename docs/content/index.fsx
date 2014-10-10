@@ -4,44 +4,20 @@
 #I "../../bin"
 
 (**
-F# Project Scaffold
-===================
+Introduction
+============
 
-Documentation
-
-<div class="row">
-  <div class="span1"></div>
-  <div class="span6">
-    <div class="well well-small" id="nuget">
-      The F# ProjectTemplate library can be <a href="https://nuget.org/packages/FSharp.ProjectTemplate">installed from NuGet</a>:
-      <pre>PM> Install-Package FSharp.ProjectTemplate</pre>
-    </div>
-  </div>
-  <div class="span1"></div>
-</div>
-
-Example
--------
-
-This example demonstrates using a function defined in this sample library.
-
-*)
-#r "FSharp.ProjectTemplate.dll"
-open FSharp.ProjectTemplate
-
-printfn "hello = %i" <| Library.hello 0
-
-(**
-Some more info
+FSharp.CloudAgent provides a simple mechanism to easily distribute workloads over the cloud
+whilst using standard F# Agents as the processing mechanism. Support exists for both simple
+and reliable messaging via Azure Service Bus.
 
 Samples & documentation
 -----------------------
 
-The library comes with comprehensible documentation. 
-It can include a tutorials automatically generated from `*.fsx` files in [the content folder][content]. 
-The API reference is automatically generated from Markdown comments in the library implementation.
+The library comes with comprehensible documentation. The API reference is automatically
+generated from Markdown comments in the library implementation.
 
- * [Tutorial](tutorial.html) contains a further explanation of this sample library.
+ * [Tutorial](tutorial.html) contains same basic examples of how to use FSharp.CloudAgent.
 
  * [API Reference](reference/index.html) contains automatically generated documentation for all types, modules
    and functions in the library. This includes additional brief samples on using most of the
@@ -59,9 +35,9 @@ The library is available under Public Domain license, which allows modification 
 redistribution for both commercial and non-commercial purposes. For more information see the 
 [License file][license] in the GitHub repository. 
 
-  [content]: https://github.com/fsprojects/FSharp.ProjectScaffold/tree/master/docs/content
-  [gh]: https://github.com/fsprojects/FSharp.ProjectScaffold
-  [issues]: https://github.com/fsprojects/FSharp.ProjectScaffold/issues
-  [readme]: https://github.com/fsprojects/FSharp.ProjectScaffold/blob/master/README.md
-  [license]: https://github.com/fsprojects/FSharp.ProjectScaffold/blob/master/LICENSE.txt
+  [content]: https://github.com/isaacabraham/FSharp.CloudAgent/tree/master/docs/content
+  [gh]: https://github.com/isaacabraham/FSharp.CloudAgent
+  [issues]: https://github.com/isaacabraham/FSharp.CloudAgent/issues
+  [readme]: https://github.com/isaacabraham/FSharp.CloudAgent/blob/master/README.md
+  [license]: https://github.com/isaacabraham/FSharp.CloudAgent/blob/master/LICENSE.txt
 *)

@@ -14,7 +14,7 @@ open FSharp.CloudAgent.Connections
 open FSharp.CloudAgent.Messaging
 
 // Connection strings to different service bus queues
-let connectionString = ConnectionString "Endpoint=sb://yourServiceBus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=yourKey"
+let connectionString = ServiceBusConnection "Endpoint=sb://yourServiceBus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=yourKey"
 let workerConn = WorkerCloudConnection(connectionString, Queue "workerQueue")
 let actorConn = ActorCloudConnection(connectionString, Queue "actorQueue")
 
@@ -50,7 +50,7 @@ disposable.Dispose()
 (* ------------- Resilient F# Agent using Service Bus to ensure processing of messages --------------- *)
 
 let createResilientAgent (ActorKey actorKey) =
-    new ResilientMailboxProcessor<Person>(fun mailbox ->
+    new MailboxProcessor<ResilientMessage<Person>>(fun mailbox ->
         async {
             while true do
                 let! message, reply = mailbox.Receive()                

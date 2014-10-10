@@ -74,8 +74,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\src\FSharp.CloudAgent\FSharp.CloudAgent.fsproj">
       <Name>FSharp.CloudAgent</Name>
       <Project>{f6147cd2-21e8-41ce-926f-9ab32eab770d}</Project>

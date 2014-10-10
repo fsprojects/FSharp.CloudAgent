@@ -118,18 +118,18 @@ open FSharp.CloudAgent.Actors.Factory
 /// <param name="createAgentFunc">A function that can create a single F# Agent to handle messages.</param>
 let StartListening<'a>(cloudConnection, createAgentFunc) =
     match cloudConnection with
-    | WorkerCloudConnection (ConnectionString connection, Queue queue) ->
+    | WorkerCloudConnection (ServiceBusConnection connection, Queue queue) ->
         let options = { PollTime = TimeSpan.FromSeconds 10.; Serializer = JsonSerializer<'a>(); GetNextAgent = CreateAgentSelector(512, createAgentFunc) }
         let messageStream = CreateQueueStream(connection, queue)
         Workers.BindToCloud(messageStream, options)
-    | ActorCloudConnection (ConnectionString connection, Queue queue) ->
+    | ActorCloudConnection (ServiceBusConnection connection, Queue queue) ->
         let options = { PollTime = TimeSpan.FromSeconds 10.; Serializer = JsonSerializer<'a>(); ActorStore = CreateActorStore(createAgentFunc) }
         let getNextSessionStream = CreateActorMessageStream(connection, queue)
         Actors.BindToCloud(getNextSessionStream, options)
 
 let private getConnectionString = function
-| WorkerCloudConnection (ConnectionString connection, Queue queue) -> connection, queue
-| ActorCloudConnection (ConnectionString connection, Queue queue) -> connection, queue
+| WorkerCloudConnection (ServiceBusConnection connection, Queue queue) -> connection, queue
+| ActorCloudConnection (ServiceBusConnection connection, Queue queue) -> connection, queue
 
 /// Posts a message to a pool of workers.
 let SendToWorkerPool<'a> connection (message:'a) = postMessage (createMessageDispatcher <| getConnectionString connection) None message

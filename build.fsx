@@ -15,57 +15,23 @@ open System
 open SourceLink
 #endif
 
-
-// --------------------------------------------------------------------------------------
-// START TODO: Provide project-specific details below
-// --------------------------------------------------------------------------------------
-
-// Information about the project are used
-//  - for version and project name in generated AssemblyInfo file
-//  - by the generated NuGet package
-//  - to run tests and to publish documentation on GitHub gh-pages
-//  - for documentation, you also need to edit info in "docs/tools/generate.fsx"
-
-// The name of the project
-// (used by attributes in AssemblyInfo, name of a NuGet package and directory in 'src')
 let project = "FSharp.CloudAgent"
-
-// Short summary of the project
-// (used as description in AssemblyInfo and as a short summary for NuGet package)
 let summary = "Allows the use of F# Agents in Azure"
-
-// Longer description of the project
-// (used as a description for NuGet package; line breaks are automatically cleaned up)
 let description = "FSharp.CloudAgent provides the capability to run standard F# Agents on top of Azure to allow massively distributed processing of workloads in a resilient manner using Azure Service Bus, either as simple workers or as sessionised actors."
-
-// List of author names (for NuGet package)
 let authors = [ "Isaac Abraham" ]
-
-// Tags for your project (for NuGet package)
 let tags = "f# agent actor azure service-bus"
-
-// File system information 
 let solutionFile  = "FSharp.CloudAgent.sln"
-
-// Pattern specifying assemblies to be tested using NUnit
 let testAssemblies = "tests/**/bin/Release/*Tests*.dll"
-
-// Git configuration (used for publishing documentation in gh-pages branch)
-// The profile where the project is posted 
 let gitHome = "https://github.com/isaacabraham"
-
-// The name of the project on GitHub
 let gitName = "FSharp.CloudAgent"
-
-// The url for the raw files hosted
 let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/isaacabraham"
+Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 
-// --------------------------------------------------------------------------------------
-// END TODO: The rest of the file includes standard build steps
-// --------------------------------------------------------------------------------------
+
+
+
 
 // Read additional information from the release notes document
-Environment.CurrentDirectory <- __SOURCE_DIRECTORY__
 let release = parseReleaseNotes (IO.File.ReadAllLines "RELEASE_NOTES.md")
 
 let genFSAssemblyInfo (projectPath) =
@@ -124,12 +90,12 @@ Target "Build" (fun _ ->
 // Run the unit tests using test runner
 
 Target "RunTests" (fun _ ->
-    !! testAssemblies
-    |> NUnit (fun p ->
-        { p with
-            DisableShadowCopy = true
-            TimeOut = TimeSpan.FromMinutes 20.
-            OutputFile = "TestResults.xml" })
+        !! testAssemblies
+        |> NUnit (fun p ->
+            { p with
+                DisableShadowCopy = true
+                TimeOut = TimeSpan.FromMinutes 20.
+                OutputFile = "TestResults.xml" })
 )
 
 #if MONO
@@ -183,7 +149,7 @@ Target "GenerateReferenceDocs" (fun _ ->
 )
 
 Target "GenerateHelp" (fun _ ->
-    if not <| executeFSIWithArgs "docs/tools" "generate.fsx" ["--define:RELEASE"; "--define:HELP"] [] then
+    if not <| executeFSIWithArgs "docs/tools" "generate.fsx" ["--define:HELP"] [] then
       failwith "generating help documentation failed"
 )
 

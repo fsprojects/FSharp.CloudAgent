@@ -2,6 +2,7 @@
 
 /// Represents a unique key to identify an agent / actor.
 type ActorKey = 
+    /// Represents a unique key to identify an agent / actor.
     | ActorKey of string
 
 [<AutoOpen>]
@@ -31,19 +32,21 @@ module internal Async =
 namespace FSharp.CloudAgent.Connections
 
 /// Represents details of a connection to an Azure Service Bus.
-type ConnectionString = 
-    | ConnectionString of string
+type ServiceBusConnection = 
+    /// Represents details of a connection to an Azure Service Bus.
+    | ServiceBusConnection of string
 
 /// Represents a service bus queue.
 type Queue = 
+    /// Represents a service bus queue.
     | Queue of string
 
 /// Represents a connection to a pool of agents.
 type CloudConnection = 
     /// A generic worker cloud that can run workloads in parallel.
-    | WorkerCloudConnection of ConnectionString * Queue
+    | WorkerCloudConnection of ServiceBusConnection * Queue
     /// An actor-based cloud that can run workloads in parallel whilst ensuring sequential workloads per-actor.
-    | ActorCloudConnection of ConnectionString * Queue
+    | ActorCloudConnection of ServiceBusConnection * Queue
 namespace FSharp.CloudAgent.Messaging
 
 open System
@@ -57,18 +60,12 @@ type MessageProcessedStatus =
     /// The message cannot be processed and should be not be attempted again.
     | Abandoned
 
-/// Contains a message to be processed by a ReslientMailboxProcessor as well as a reply channel to confirm message completion.
-type ResilientMessage<'a> = 'a * (MessageProcessedStatus -> unit)
-
-/// Represents an agent that can deal with Resilient Messages.
-type ResilientMailboxProcessor<'a> = MailboxProcessor<ResilientMessage<'a>>
-
 /// Represents the kinds of F# Agents that can be bound to an Azure Service Bus Queue for processing distributed messages, optionally with automatic retry.
 type CloudAgentKind<'a> = 
     /// A simple cloud agent that offers simple forward-only processing of messages.
     | BasicCloudAgent of MailboxProcessor<'a>
     /// A cloud agent that requires explicit completion of processed message, with automatic retry and dead lettering.
-    | ResilientCloudAgent of ResilientMailboxProcessor<'a>
+    | ResilientCloudAgent of MailboxProcessor<'a * (MessageProcessedStatus -> unit)>
 
 /// Contains the raw data of a cloud message.
 type internal SimpleCloudMessage = 
