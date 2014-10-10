@@ -7,7 +7,7 @@ open Newtonsoft.Json
 [<AutoOpen>]
 module internal Streams = 
     open Microsoft.ServiceBus.Messaging
-    open FSharp.CloudAgent
+    open FSharp.CloudAgent.Messaging
 
     /// Represents a stream of cloud messages.
     type ICloudMessageStream = 
@@ -83,9 +83,11 @@ module internal Serialization =
 
 [<AutoOpen>]
 module internal Helpers =
+    open FSharp.CloudAgent.Messaging
+
     /// Knows how to process a single brokered message from the service bus, with error handling
     /// and processing by the target queue.
-    let ProcessBrokeredMessage<'a> (serializer:ISerializer<'a>) (agent:CloudAgent<'a>) message =
+    let ProcessBrokeredMessage<'a> (serializer:ISerializer<'a>) (agent:CloudAgentKind<'a>) message =
         async {
             let! messageBody = async { return serializer.Deserialize(message.Body) } |> Async.CatchException
             let! processResult =
@@ -93,11 +95,16 @@ module internal Helpers =
                 | Error _ -> async { return Failed } // could not deserialize
                 | Result messageBody ->
                     async {
-                        let! processingResult = agent.PostAndAsyncReply(fun ch -> messageBody, ch.Reply) |> Async.CatchException
-                        return
-                            match processingResult with
-                            | Error _ -> Failed
-                            | Result status -> status
+                        match agent with
+                        | BasicCloudAgent agent ->
+                            agent.Post messageBody
+                            return Completed
+                        | ResilientCloudAgent agent ->
+                            let! processingResult = agent.PostAndAsyncReply(fun ch -> messageBody, ch.Reply) |> Async.CatchException
+                            return
+                                match processingResult with
+                                | Error _ -> Failed
+                                | Result status -> status
                     }
             return processResult
         }
@@ -125,12 +132,14 @@ module internal Dispatch =
 
     /// Contains configuration details for posting messages to a cloud of agents or actors.
     type MessageDispatcher<'a> = 
-        {   Connection : string * string
+        {   ServiceBusConnectionString : string
+            QueueName : string
             Serializer : ISerializer<'a> }
 
     /// Creates a dispatcher using default settings.
     let createMessageDispatcher<'a> (connectionString, queueName) =
-        {   Connection = connectionString, queueName
+        {   ServiceBusConnectionString = connectionString
+            QueueName = queueName
             Serializer = JsonSerializer<'a>() }
 
     let postMessage (options:MessageDispatcher<'a>) sessionId message =
@@ -139,6 +148,6 @@ module internal Dispatch =
                 let payload = message |> options.Serializer.Serialize
                 new BrokeredMessage(payload, SessionId = defaultArg sessionId null)
                             
-            let queueClient = QueueClient.CreateFromConnectionString(fst options.Connection, snd options.Connection)
+            let queueClient = QueueClient.CreateFromConnectionString(options.ServiceBusConnectionString, options.QueueName)
             do! brokeredMessage |> queueClient.SendAsync |> Async.AwaitTaskEmpty
         }

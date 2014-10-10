@@ -52,7 +52,7 @@
     <Compile Include="Types.fs" />
     <Compile Include="Messaging.fs" />
     <Compile Include="Actors.fs" />
-    <Compile Include="Connectivity.fs" />
+    <Compile Include="ConnectionFactory.fs" />
     <Content Include="packages.config" />
     <Content Include="app.config" />
   </ItemGroup>

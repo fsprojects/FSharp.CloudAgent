@@ -8,7 +8,7 @@ open FSharp.CloudAgent.Messaging
 /// Manages lifetime of actors.
 type internal IActorStore<'a> =
     /// Requests an actor for a particular key.
-    abstract member GetActor : ActorKey -> CloudAgent<'a>
+    abstract member GetActor : ActorKey -> CloudAgentKind<'a>
     /// Tells the store that an actor is no longer required and can be safely removed.
     abstract member RemoveActor : ActorKey -> unit
     
@@ -17,14 +17,14 @@ type private ActorStoreRequest =
 | Get of ActorKey
 | Remove of ActorKey
 
-type private ActorFactory<'a> = MailboxProcessor<ActorStoreRequest * (AsyncReplyChannel<CloudAgent<'a>> option)>
+type private ActorFactory<'a> = MailboxProcessor<ActorStoreRequest * (AsyncReplyChannel<CloudAgentKind<'a>> option)>
 
 module internal Factory =
     let private createActorFactory<'a> createAgent =
         let actorStore =
             new ActorFactory<'a>
                 (fun inbox ->
-                    let actors = Dictionary<string, CloudAgent<'a>>()
+                    let actors = Dictionary<string, CloudAgentKind<'a>>()
                     async {
                         while true do
                             let! message, replyChannel = inbox.Receive()
@@ -33,16 +33,21 @@ module internal Factory =
                                 let actor =
                                     if not (actors.ContainsKey agentId) then
                                         printfn "Creating actor %s" agentId
-                                        let actor = createAgent (ActorKey agentId)
+                                        let actor =createAgent (ActorKey agentId)
                                         actors.Add(agentId, actor)
-                                        try actor.Start() with _ -> ()                  
+                                        match actor with
+                                        | ResilientCloudAgent actor -> try actor.Start() with _ -> ()
+                                        | BasicCloudAgent actor -> try actor.Start() with _ -> ()
                                     actors.[agentId]
                                 replyChannel
                                 |> Option.iter(fun replyChannel -> replyChannel.Reply actor)
                             | Remove (ActorKey actorKey) ->
                                 if actors.ContainsKey(actorKey) then
                                     printfn "Removing actor %s" actorKey
-                                    let actorToRemove = actors.[actorKey] :> IDisposable
+                                    let actorToRemove =
+                                        match actors.[actorKey] with
+                                        | ResilientCloudAgent actor -> actor :> IDisposable
+                                        | BasicCloudAgent actor -> actor :> IDisposable
                                     actors.Remove actorKey |> ignore
                                     actorToRemove.Dispose()
                                         
@@ -58,14 +63,16 @@ module internal Factory =
             member __.RemoveActor(sessionId) = actorFactory.Post(Remove sessionId, None) }
         
     /// Selects an agent to consume a message.
-    type AgentSelectorFunc<'a> = unit -> Async<CloudAgent<'a>>
+    type AgentSelectorFunc<'a> = unit -> Async<CloudAgentKind<'a>>
     
     /// Generates a pool of CloudAgents of a specific size that can be used to select an agent when required.
-    let CreateAgentSelector<'a> (size, createAgent : ActorKey -> CloudAgent<'a>) : AgentSelectorFunc<'a> = 
+    let CreateAgentSelector<'a> (size, createAgent : ActorKey -> CloudAgentKind<'a>) : AgentSelectorFunc<'a> = 
         let agents = 
             [ for i in 1..size ->
                 let agent = createAgent (ActorKey (i.ToString()))
-                try agent.Start() with _ -> ()
+                match agent with
+                | BasicCloudAgent agent -> try agent.Start() with _ -> ()
+                | ResilientCloudAgent agent -> try agent.Start() with _ -> ()
                 agent ]
         
         let r = Random()

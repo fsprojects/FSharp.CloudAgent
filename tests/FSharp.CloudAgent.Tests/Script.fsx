@@ -7,16 +7,46 @@
 #load "Types.fs"
 #load "Actors.fs"
 #load "Messaging.fs"
-#load "Connectivity.fs"
+#load "ConnectionFactory.fs"
 
 open FSharp.CloudAgent
 open FSharp.CloudAgent.Connections
 open FSharp.CloudAgent.Messaging
 
+// Connection strings to different service bus queues
+let connectionString = ConnectionString "Endpoint=sb://yourSb.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=key"
+let workerConn = WorkerCloudConnection(connectionString, Queue "workerQueue")
+let actorConn = ActorCloudConnection(connectionString, Queue "actorQueue")
+
 type Person = { Name : string; Age : int }
 
-let createDummyAgent (ActorKey actorKey) =
-    new CloudAgent<Person>(fun mailbox ->
+
+
+(* ------------- Standard F# Agent --------------- *)
+
+let createBasicAgent (ActorKey actorKey) =
+    new MailboxProcessor<Person>(fun mailbox ->
+        async {
+            while true do
+                let! message = mailbox.Receive()                
+                printfn "Actor %s has received message '%A', processing..." actorKey message
+        })
+
+// Start listening for messages without any error resilience
+ConnectionFactory.StartListening(workerConn, createBasicAgent >> BasicCloudAgent)
+let postToCloud = ConnectionFactory.SendToWorkerCloud workerConn
+postToCloud { Name = "Isaac"; Age = 34 } |> Async.RunSynchronously
+
+
+
+
+
+
+
+(* ------------- Resilient F# Agent using Service Bus to ensure processing of messages --------------- *)
+
+let createResilientAgent (ActorKey actorKey) =
+    new ResilientMailboxProcessor<Person>(fun mailbox ->
         async {
             while true do
                 let! message, reply = mailbox.Receive()                
@@ -30,14 +60,15 @@ let createDummyAgent (ActorKey actorKey) =
                 reply response
         })
 
-let connectionString = ConnectionString "Endpoint=sb://yourservicebus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=yourkey"
-
-let actorConn = ActorCloudConnection(connectionString, Queue "sessionisedQueue")
-ConnectionFactory.StartListening(actorConn, createDummyAgent)
-let postToFred = ConnectionFactory.SendToActorCloud actorConn (ActorKey "Fred")
-postToFred { Name = "Isaac"; Age = 34 } |> Async.RunSynchronously
-
-let workerConn = WorkerCloudConnection(connectionString, Queue "workerQueue")
-ConnectionFactory.StartListening(workerConn, createDummyAgent)
-let postToCloud = ConnectionFactory.SendToWorkerCloud(workerConn)
+ConnectionFactory.StartListening(workerConn, createResilientAgent >> ResilientCloudAgent)
 postToCloud { Name = "Isaac"; Age = 34 } |> Async.RunSynchronously
+
+
+
+
+(* ------------- Actor-based F# Agents using Service Bus sessions to ensure synchronisation of messages--------------- *)
+
+ConnectionFactory.StartListening(actorConn, createResilientAgent >> ResilientCloudAgent)
+let postToFred = ConnectionFactory.SendToActorCloud actorConn (ActorKey "Fred")
+postToFred { Name = "Tim"; Age = 34 } |> Async.RunSynchronously
+

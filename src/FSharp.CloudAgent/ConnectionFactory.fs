@@ -19,7 +19,7 @@ module internal Actors =
         let processBrokeredMessage = ProcessBrokeredMessage options.Serializer
         
         /// Locks into a loop, processing messages from a specific session with a specific agent until the session is empty.
-        let processSession (agent : CloudAgent<'a>, session : IActorMessageStream) = 
+        let processSession (agent : CloudAgentKind<'a>, session : IActorMessageStream) = 
             let rec continueProcessingStream() = 
                 let processBrokeredMessage = processBrokeredMessage agent
                 async { 
@@ -49,7 +49,6 @@ module internal Actors =
         |> Async.Start
 
 module internal Workers =
-    open FSharp.CloudAgent
     open System
     open FSharp.CloudAgent.Messaging
     open FSharp.CloudAgent.Actors.Factory
