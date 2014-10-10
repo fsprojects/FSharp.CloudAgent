@@ -34,8 +34,11 @@ let createBasicAgent (ActorKey actorKey) =
 
 // Start listening for messages without any error resilience
 ConnectionFactory.StartListening(workerConn, createBasicAgent >> BasicCloudAgent)
-let postToCloud = ConnectionFactory.SendToWorkerCloud workerConn
-postToCloud { Name = "Isaac"; Age = 34 } |> Async.RunSynchronously
+
+// Send a message to the worker pool
+{ Name = "Isaac"; Age = 34 }
+|> ConnectionFactory.SendToWorkerCloud workerConn
+|> Async.RunSynchronously
 
 
 
@@ -60,15 +63,24 @@ let createResilientAgent (ActorKey actorKey) =
                 reply response
         })
 
+// Start listening for messages with built-in error resilience
 ConnectionFactory.StartListening(workerConn, createResilientAgent >> ResilientCloudAgent)
-postToCloud { Name = "Isaac"; Age = 34 } |> Async.RunSynchronously
+
+// Send a message to the worker pool
+{ Name = "Isaac"; Age = 34 } 
+|> ConnectionFactory.SendToWorkerCloud workerConn
+|> Async.RunSynchronously
 
 
 
 
 (* ------------- Actor-based F# Agents using Service Bus sessions to ensure synchronisation of messages--------------- *)
 
+// Start listening for actor messages with built-in error resilient
 ConnectionFactory.StartListening(actorConn, createResilientAgent >> ResilientCloudAgent)
-let postToFred = ConnectionFactory.SendToActorCloud actorConn (ActorKey "Fred")
-postToFred { Name = "Tim"; Age = 34 } |> Async.RunSynchronously
+
+// Send a message 
+{ Name = "Isaac"; Age = 34 } 
+|> ConnectionFactory.SendToActorCloud actorConn (ActorKey "Fred")
+|> Async.RunSynchronously
 
