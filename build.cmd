@@ -2,8 +2,8 @@
 cls
 
 IF NOT EXIST packages\FAKE\tools\FAKE.exe  (
-  .nuget\nuget.exe install FAKE -OutputDirectory packages -ExcludeVersion
-  .nuget\nuget.exe install SourceLink.Fake -OutputDirectory packages -ExcludeVersion
+    .paket\paket.bootstrapper.exe
+    .paket\paket.exe restore
 )
 
 IF NOT EXIST build.fsx (

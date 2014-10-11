@@ -1,0 +1,9 @@
+source http://nuget.org/api/v2
+
+nuget FAKE
+nuget SourceLink.Fake
+nuget FSharp.Formatting
+nuget NUnit
+nuget NUnit.Runners
+nuget WindowsAzure.ServiceBus
+nuget Newtonsoft.Json
