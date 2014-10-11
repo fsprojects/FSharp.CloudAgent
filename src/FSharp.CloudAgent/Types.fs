@@ -25,9 +25,10 @@ module internal Async =
     let CatchException workflow = 
         async { 
             let! result = workflow |> Async.Catch
-            return match result with
-                   | Choice1Of2 result -> Result result
-                   | Choice2Of2 ex -> Error ex
+            return
+                match result with
+                | Choice1Of2 result -> Result result
+                | Choice2Of2 ex -> Error ex
         }
 namespace FSharp.CloudAgent.Connections
 
@@ -70,4 +71,5 @@ type CloudAgentKind<'a> =
 /// Contains the raw data of a cloud message.
 type internal SimpleCloudMessage = 
     { Body : string
-      LockToken : Guid }
+      LockToken : Guid
+      Expiry : DateTime }

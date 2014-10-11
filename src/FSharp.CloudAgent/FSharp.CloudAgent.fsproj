@@ -18,10 +18,10 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <Tailcalls>false</Tailcalls>
-    <OutputPath>..\..\bin\</OutputPath>
+    <OutputPath>bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>..\..\bin\FSharp.CloudAgent.XML</DocumentationFile>
+    <DocumentationFile>bin\FSharp.CloudAgent.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -53,6 +53,7 @@
     <Compile Include="Messaging.fs" />
     <Compile Include="Actors.fs" />
     <Compile Include="ConnectionFactory.fs" />
+    <Compile Include="CustomAssemblyPermissions.fs" />
     <Content Include="paket.references" />
     <Content Include="app.config" />
   </ItemGroup>

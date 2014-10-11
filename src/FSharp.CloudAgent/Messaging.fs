@@ -43,7 +43,8 @@ module internal Streams =
                 async { 
                     let! message = receiver.ReceiveAsync() |> Async.AwaitTask
                     return Some {   Body = message.GetBody<string>()
-                                    LockToken = message.LockToken }
+                                    LockToken = message.LockToken
+                                    Expiry = message.ExpiresAtUtc }
                 }
     
     type private SessionisedQueueStream(session : MessageSession) = 
@@ -101,12 +102,13 @@ module internal Helpers =
                             agent.Post messageBody
                             return Completed
                         | ResilientCloudAgent agent ->
-                            // Wait for the response and return it.
-                            let! processingResult = agent.PostAndAsyncReply(fun ch -> messageBody, ch.Reply) |> Async.CatchException
+                            // Wait for the response and return it. Timeout is set based on message expiry.
+                            let! processingResult = agent.PostAndTryAsyncReply((fun ch -> messageBody, ch.Reply), int (message.Expiry - DateTime.UtcNow).TotalMilliseconds) |> Async.CatchException
                             return
                                 match processingResult with
-                                | Error _ -> Failed
-                                | Result status -> status
+                                | Error _
+                                | Result None -> Failed
+                                | Result (Some status) -> status
                     }
             return processResult
         }
@@ -116,16 +118,12 @@ module internal Helpers =
     let withAutomaticRetry getItem pollTime =
         let rec continuePolling() =
             async {
-                printfn "Asking stream for more data.."
-                let! session = getItem() |> Async.CatchException
-                match session with
+                let! nextItem = getItem() |> Async.CatchException
+                match nextItem with
                 | Error _ | Result None ->
-                    printfn "Nothing returned, sleeping."
-                    do! Async.Sleep(pollTime)
+                    do! Async.Sleep pollTime
                     return! continuePolling()
-                | Result (Some value) ->
-                    printfn "Got something!"
-                    return value
+                | Result (Some item) -> return item
             }
         continuePolling()
     

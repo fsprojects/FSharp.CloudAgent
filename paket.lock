@@ -15,5 +15,6 @@ NUGET
     RazorEngine (3.3.0)
       Microsoft.AspNet.Razor (>= 2.0.30506.0)
     SourceLink.Fake (0.4.0)
+    Unquote (2.2.2)
     WindowsAzure.ServiceBus (2.4.4.0)
       Microsoft.WindowsAzure.ConfigurationManager (>= 0)
