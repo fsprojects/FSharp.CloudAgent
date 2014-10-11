@@ -179,10 +179,11 @@
   <ItemGroup>
     <Compile Include="Helpers.fs" />
     <Compile Include="ProcessBrokeredMessage.fs" />
-    <Compile Include="AutomaticRetry.fs" />
+    <Compile Include="Actors.fs" />
     <None Include="paket.references" />
     <None Include="Script.fsx" />
     <Content Include="app.config" />
+    <Compile Include="AutomaticRetry.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
