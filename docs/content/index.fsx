@@ -1,15 +1,10 @@
-(*** hide ***)
-// This block of code is omitted in the generated HTML documentation. Use 
-// it to define helpers that you do not want to show in the documentation.
-#I "../../bin"
-
 (**
 Introduction
 ============
 
-FSharp.CloudAgent provides a simple mechanism to easily distribute workloads over the cloud
+FSharp.CloudAgent provides a simple framework to easily distribute workloads over the cloud
 whilst using standard F# Agents as the processing mechanism. Support exists for both simple
-and reliable messaging via Azure Service Bus.
+and reliable messaging via Azure Service Bus, and for both workers and actors.
 
 Samples & documentation
 -----------------------
