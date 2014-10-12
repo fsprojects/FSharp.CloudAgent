@@ -73,12 +73,11 @@ let createAResilientAgent agentId =
             while true do
                 let! message, replyChannel = inbox.Receive()
                 printfn "%s is %d years old." message.Name message.Age
-                let processingResult =
-                    match message with
-                    | { Name = "Isaac" } -> Completed // all good, message was processed
-                    | { Name = "Richard" } -> Failed // error occurred, try again
-                    | _ -> Abandoned // give up with this message.
-                replyChannel processingResult
+                
+                match message with
+                | { Name = "Isaac" } -> replyChannel Completed // all good, message was processed
+                | { Name = "Richard" } -> replyChannel Failed // error occurred, try again
+                | _ -> replyChannel Abandoned // give up with this message.
         })
 
 // Start listening! A local pool of agents will be created that will receive messages.
