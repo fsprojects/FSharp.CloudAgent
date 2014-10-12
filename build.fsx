@@ -136,7 +136,8 @@ Target "NuGet" (fun _ ->
             OutputPath = "bin"
             AccessKey = getBuildParamOrDefault "nugetkey" ""
             Publish = hasBuildParam "nugetkey"
-            Dependencies = [] })
+            Dependencies = [ ("WindowsAzure.ServiceBus", "2.4.4.0")
+                             ("Newtonsoft.Json", "6.0.5") ] })
         ("nuget/" + project + ".nuspec")
 )
 

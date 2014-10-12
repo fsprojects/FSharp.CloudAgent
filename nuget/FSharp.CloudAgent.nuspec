@@ -7,14 +7,14 @@
         <owners>@authors@</owners>
         <licenseUrl>http://github.com/isaacabraham/FSharp.CloudAgent/blob/master/LICENSE.txt</licenseUrl>
         <projectUrl>http://isaacabraham.github.io/FSharp.CloudAgent</projectUrl>
-        <iconUrl>https://raw.githubusercontent.com/fsprojects/ProjectScaffold/master/docs/files/img/logo.png</iconUrl>
+        <iconUrl>http://isaacabraham.github.io/FSharp.CloudAgent/img/logo.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <summary>@summary@</summary>
         <description>@description@</description>
         <releaseNotes>@releaseNotes@</releaseNotes>
         <copyright>Copyright 2014</copyright>
         <tags>@tags@</tags>
-        <dependencies />
+        @dependencies@
     </metadata>
     <files>
         <file src="..\bin\FSharp.CloudAgent.dll" target="lib/net40" />
