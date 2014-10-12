@@ -207,7 +207,7 @@ Target "All" DoNothing
   ==> "GenerateHelp"
   ==> "GenerateReferenceDocs"
   ==> "GenerateDocs"
-    
+
 "ReleaseDocs"
   ==> "Release"
 

@@ -14,7 +14,7 @@ module internal Helpers =
         let disposable =
             { new IDisposable with
                 member __.Dispose() = source.Cancel() }
-        disposable, source.Token        
+        disposable, source.Token
 
 module internal Actors =
     open System.Threading
@@ -66,6 +66,7 @@ module internal Actors =
         }
         |> Async.Start
         disposable
+
 module internal Workers =
     open System
     open FSharp.CloudAgent.Messaging
@@ -81,7 +82,7 @@ module internal Workers =
         let getNextMessage = messageStream.GetNextMessage |> withAutomaticRetry
         let processBrokeredMessage = ProcessBrokeredMessage options.Serializer
         let disposable, token = createDisposable()
-        async { 
+        async {
             while not token.IsCancellationRequested do
                 // Only try to get a message once we have an available agent.
                 let! agent = options.GetNextAgent()
