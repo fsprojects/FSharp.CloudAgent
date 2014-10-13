@@ -16,6 +16,8 @@ generated from Markdown comments in the library implementation.
 
  * [Service Bus](service-bus.html) provides an overview of Azure Service Bus and how it interoperates with F# Agents.
 
+ * [Agent Paradigms](agent-paradigms.html) explains the core differences between the types of supported Cloud Agents.
+
  * [API Reference](reference/index.html) contains automatically generated documentation for all types, modules
    and functions in the library. This includes additional brief samples on using most of the
    functions.
