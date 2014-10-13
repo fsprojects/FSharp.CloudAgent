@@ -17,7 +17,7 @@ open SourceLink
 
 let project = "FSharp.CloudAgent"
 let summary = "Allows the use of distributed F# Agents in Azure."
-let description = "FSharp.CloudAgent provides the capability to run standard F# Agents on top of Azure to allow massively distributed processing of workloads in a resilient manner using Azure Service Bus, either as simple pools workers or as actors."
+let description = "FSharp.CloudAgent provides the capability to run standard F# Agents on top of Azure to allow massively distributed processing of workloads in a resilient manner using Azure Service Bus, either as pools of simple workers or actors."
 let authors = [ "Isaac Abraham" ]
 let tags = "f# agent actor azure service-bus"
 let solutionFile  = "FSharp.CloudAgent.sln"

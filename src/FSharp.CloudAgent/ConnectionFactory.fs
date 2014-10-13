@@ -1,4 +1,4 @@
-﻿/// Contains connectors for F# Agents to Azure Service Bus Queues as either Actors or Agents.
+﻿/// Contains connectors for F# Agents to Azure Service Bus Queues as either Workers or Actors.
 module FSharp.CloudAgent.ConnectionFactory
 
 open FSharp.CloudAgent
