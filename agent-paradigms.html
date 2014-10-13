@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>Agent Paradigms
+</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="Allows the use of F# Agents in Azure."/>
+    <meta name="author" content="Isaac Abraham"/>
+
+    <script src="https://code.jquery.com/jquery-1.8.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.8.23/jquery-ui.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/js/bootstrap.min.js"></script>
+    <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.1/css/bootstrap-combined.min.css" rel="stylesheet"/>
+
+    <link type="text/css" rel="stylesheet" href="/FSharp.CloudAgent/content/style.css" />
+    <script type="text/javascript" src="/FSharp.CloudAgent/content/tips.js"></script>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="container">
+      <div class="masthead">
+        <ul class="nav nav-pills pull-right">
+          <li><a href="http://fsharp.org">fsharp.org</a></li>
+          <li><a href="http://github.com/isaacabraham/FSharp.CloudAgent">github page</a></li>
+        </ul>
+        <h3 class="muted"><a href="/FSharp.CloudAgent/index.html">FSharp.CloudAgent</a></h3>
+      </div>
+      <hr />
+      <div class="row">
+        <div class="span9" id="main">
+          
+<h1>Agent Paradigms</h1>
+
+<p>This article briefly explains the two distributed agent models supported by CloudAgent.</p>
+
+<h2>Agent types</h2>
+
+<p>Different types of agents control the manner in which messages are passed through your
+application as well as the sizing behaviour of the pools themselves.</p>
+
+<h3>Worker Pools</h3>
+
+<p>Worker Pools represent agents which are entirely stateless. They can handle messages
+in any order and at any time. Worker Pools in CloudAgent are fixed at a size of 512 workers
+per node; messages will be randomly distributed through the worker pool. You will probably
+use Workers for the majority of your distributed workloads.</p>
+
+<h3>Actor Pools</h3>
+
+<p>Actor Pools represent agents which activate and deactive as work appears for them to
+process. Messages are "routed" to a specific agent by means of an ActorKey - a simple
+string which is used to determine which agent will receive the message. Each CloudAgent
+node maintains a set of agents which will be created and destroyed as required to fulfil
+requests for a specific actor. Thus, whilst an actor pool is theoretically unlimited in size,
+the actual number of Actors running at any given time is equal to the number of messages
+being processed, grouped by ActorKey.
+As both Service Bus sessions and F# Agents naturally guarantee sequential flow of messages,
+Actor Pools can be used in situations where you do not want to worry about concurrent processing
+of messages. This can be used to dramatically simplify your software at the cost of removing
+parallelisation of processing for messages keyed to the same actor.</p>
+
+<h3>Hybrid Models</h3>
+
+<p>There is nothing to stop you sharing agent code across both types of agent pools. You can send
+some messages over a standard Service Bus Queue for worker-style processing, and send
+other messages that you need to run in isolation over a sessionised queue for Actor processing.</p>
+
+<h2>Agent Resiliency</h2>
+
+<p>Agents can handle messages in different ways to cope with errors. CloudAgent offers two different
+models.</p>
+
+<h3>Basic Agents</h3>
+
+<p>Basic agents are the most simple to create - you simply bind your existing F# Agent code
+to a service bus queue. When messages arrive from the service bus, once they have been
+successfully deserialised, CloudAgent will dispatch the to an agent for processing and
+immediately mark them as complete on the service bus.
+This is the simplest model for processing and means that your agents will never receive
+the same message more than once. However, it is entirely your responsibility to handle
+retry logic of messages which fail, or to log messages which cannot be processed. If
+your agent crashes, or Azure decides to restart the machine on which your agent pool is
+running on whilst processing a message, that message will be lost.
+You might use Basic Agents when creating pools where failing to completely process a single
+message is not critical to the overall operation of your application.</p>
+
+<h3>Resilient Agents</h3>
+
+<p>Resilient Agents use the built-in capabilities of Azure Service Bus to guarantee message
+processing, with built-in retry logic and dead lettering. Rather than simply receiving a
+message and processing them, your F# Agents receive both a message and a reply channel.
+Once your agent finishes processing a message, it should reply back with a status
+(Completed, Failed or Abandon), which in turn is converted into a Service Bus message
+acknowledgement. Only when Service Bus receives this acknowledge will it remove the message
+from the queue. Otherwise, if your Agent crashes or fails to reply within the message timeout
+period, Service Bus will once again make the message available for other nodes to consume.
+Messages that repeatedly fail will automatically be pushed to a dead letter queue on the
+service bus where they can be analysed in isolation.
+In this model, messages are guaranteed to be delivered at least once to an agent for
+processing. Use this model where you need to guarantee delivery of every message in the
+system to your agents and need resliency of message processing.</p>
+
+
+        </div>
+        <div class="span3">
+          <img src="/FSharp.CloudAgent/img/logo.png" alt="F# Project" style="width:150px;margin:10px" />  
+          <ul class="nav nav-list" id="menu" style="margin-top: 20px;">
+            <li class="nav-header">FSharp.CloudAgent</li>
+            <li><a href="/FSharp.CloudAgent/index.html">Home page</a></li>
+            <li class="divider"></li>
+            <li><a href="http://nuget.org/packages/FSharp.CloudAgent">Get Library via NuGet</a></li>
+            <li><a href="http://github.com/isaacabraham/FSharp.CloudAgent">Source Code on GitHub</a></li>
+            <li><a href="http://github.com/isaacabraham/FSharp.CloudAgent/blob/master/LICENSE.txt">License</a></li>
+            <li><a href="http://github.com/isaacabraham/FSharp.CloudAgent/blob/master/RELEASE_NOTES.md">Release Notes</a></li>
+            
+            <li class="nav-header">Getting started</li>
+            <li><a href="/FSharp.CloudAgent/tutorial.html">Sample tutorial</a></li>
+
+            <li class="nav-header">Documentation</li>
+            <li><a href="/FSharp.CloudAgent/service-bus.html">Azure Service Bus</a></li>
+            <li><a href="/FSharp.CloudAgent/agent-paradigms.html">Agents in the Cloud</a></li>
+            <li><a href="/FSharp.CloudAgent/reference/index.html">API Reference</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <a href="http://github.com/isaacabraham/FSharp.CloudAgent"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"/></a>
+  </body>
+  </html>
