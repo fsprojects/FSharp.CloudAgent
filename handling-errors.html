@@ -35,6 +35,26 @@
           
 <h1>Handling Errors</h1>
 
+<p>Your approach towards error handling will most likely differ depending on the type of agent
+pool (irrespective of whether worker or actor) being used.</p>
+
+<h2>Basic Agents</h2>
+
+<p>Basic agents work on an "at-most-once" delivery mechanism to F# agents. This means that it is
+entirely your responsibility to be able to guarantee processing of these messages. You should
+cater for logging out failures as well as persisting failed messages to some persistance store
+for later inspection. If an agent crashes due to an unhandled exception, your message will be
+lost permanently.</p>
+
+<h2>Resilient Agents</h2>
+
+<p>Reslient agents work on an "at-least-once" delivery mechanism. Failed messages will automatically
+be redelivered until the queue marks them as dead lettered. If an agent crashes due to an unhandled
+exception, your message will be automatically re-delivered once it expires. If you set this expiry
+too long, you may wish to consider wrapping your agent processing code in a try catch or other
+exception handling pattern and immediately returning a Failed to the CloudAgent framework to short-
+circuit this wait.</p>
+
 
         </div>
         <div class="span3">
@@ -54,6 +74,7 @@
             <li class="nav-header">Documentation</li>
             <li><a href="/FSharp.CloudAgent/service-bus.html">Azure Service Bus</a></li>
             <li><a href="/FSharp.CloudAgent/agent-paradigms.html">Agents in the Cloud</a></li>
+            <li><a href="/FSharp.CloudAgent/handler-errors.html">Error Handling</a></li>
             <li><a href="/FSharp.CloudAgent/reference/index.html">API Reference</a></li>
           </ul>
         </div>

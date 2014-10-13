@@ -57,7 +57,7 @@ completion messages back to the Service Bus from agents.</p>
 
 <ul>
 <li><strong>Reliable</strong>. Service Bus Queues guarantee message <em>delivery to</em> and <em>processing by</em> consumers.
-If a message is not completed within a specified timeout, it is is made available for processing
+If a message is not completed within a specified timeout, it is made available for processing
 again by another consumer. Thus, distributed message processing in CloudAgent takes the form
 of <em>at-least-once</em> processing; a message will be processed <em>at least once</em>, but depending on
 whether the consumer successfully "completes" the message, it may be re-processed by other
@@ -103,6 +103,7 @@ when creating the queue; likewise for Worker pools, Session support must be turn
             <li class="nav-header">Documentation</li>
             <li><a href="/FSharp.CloudAgent/service-bus.html">Azure Service Bus</a></li>
             <li><a href="/FSharp.CloudAgent/agent-paradigms.html">Agents in the Cloud</a></li>
+            <li><a href="/FSharp.CloudAgent/handler-errors.html">Error Handling</a></li>
             <li><a href="/FSharp.CloudAgent/reference/index.html">API Reference</a></li>
           </ul>
         </div>
