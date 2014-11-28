@@ -65,7 +65,7 @@ let ``Exception from Resilient agent returns Failed``() =
     result =? Failed
 
 [<Test>]
-let ``Maximum expiry time does not crash the message handler``() =
+let ``Message with maximum expiry time is correctly processed``() =
     let agent = getResilientAgent(fun _ -> Completed)
     let result = { Person.Name = "Isaac" }
                  |> createMessage personSerializer DateTime.MaxValue

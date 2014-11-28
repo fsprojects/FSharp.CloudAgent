@@ -123,6 +123,8 @@ Target "SourceLink" (fun _ ->
 // --------------------------------------------------------------------------------------
 // Build a NuGet package
 
+let asDependency name = name, GetPackageVersion "packages" name
+
 Target "NuGet" (fun _ ->
     NuGet (fun p ->
         { p with
@@ -136,8 +138,8 @@ Target "NuGet" (fun _ ->
             OutputPath = "bin"
             AccessKey = getBuildParamOrDefault "nugetkey" ""
             Publish = hasBuildParam "nugetkey"
-            Dependencies = [ ("WindowsAzure.ServiceBus", "2.4.4.0")
-                             ("Newtonsoft.Json", "6.0.5") ] })
+            Dependencies = [ "WindowsAzure.ServiceBus"
+                             "Newtonsoft.Json" ] |> List.map asDependency })
         ("nuget/" + project + ".nuspec")
 )
 

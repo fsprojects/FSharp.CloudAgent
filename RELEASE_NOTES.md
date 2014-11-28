@@ -4,3 +4,5 @@
 * Workers Pools
 * Actor Pools
 
+### 0.2 - Minor enhancements
+* Fixed a couple of bugs in resilient agents.
