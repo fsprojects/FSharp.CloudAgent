@@ -22,7 +22,7 @@ Service Bus Queues key concepts
 Within the context of CloudAgent, Service Bus Queues provide the following key features: -
 
 * **Reliable**. Service Bus Queues guarantee message *delivery to* and *processing by* consumers.
-If a message is not completed within a specified timeout, it is is made available for processing
+If a message is not completed within a specified timeout, it is made available for processing
 again by another consumer. Thus, distributed message processing in CloudAgent takes the form
 of *at-least-once* processing; a message will be processed *at least once*, but depending on
 whether the consumer successfully "completes" the message, it may be re-processed by other

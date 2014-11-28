@@ -13,11 +13,9 @@ The library comes with comprehensible documentation. The API reference is automa
 generated from Markdown comments in the library implementation.
 
  * [Tutorial](tutorial.html) contains same basic examples of how to use FSharp.CloudAgent.
-
  * [Service Bus](service-bus.html) provides an overview of Azure Service Bus and how it interoperates with F# Agents.
-
  * [Agent Paradigms](agent-paradigms.html) explains the core differences between the types of supported Cloud Agents.
-
+ * [Error Handling](handling-errors.html) suggests some high-level principles of how to cater for errors within Cloud Agent.
  * [API Reference](reference/index.html) contains automatically generated documentation for all types, modules
    and functions in the library. This includes additional brief samples on using most of the
    functions.
