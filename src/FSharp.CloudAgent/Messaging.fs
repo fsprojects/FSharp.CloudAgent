@@ -42,9 +42,12 @@ module internal Streams =
             member __.GetNextMessage() = 
                 async { 
                     let! message = receiver.ReceiveAsync() |> Async.AwaitTask
-                    return Some {   Body = message.GetBody<string>()
-                                    LockToken = message.LockToken
-                                    Expiry = message.ExpiresAtUtc }
+                    match message with
+                    | null -> return None
+                    | message ->
+                        return Some {   Body = message.GetBody<string>()
+                                        LockToken = message.LockToken
+                                        Expiry = message.ExpiresAtUtc }
                 }
     
     type private SessionisedQueueStream(session : MessageSession) = 
@@ -102,8 +105,13 @@ module internal Helpers =
                             agent.Post messageBody
                             return Completed
                         | ResilientCloudAgent agent ->
-                            // Wait for the response and return it. Timeout is set based on message expiry.
-                            let! processingResult = agent.PostAndTryAsyncReply((fun ch -> messageBody, ch.Reply), int (message.Expiry - DateTime.UtcNow).TotalMilliseconds) |> Async.CatchException
+                            // Wait for the response and return it. Timeout is set based on message expiry unless it's too large.
+                            let expiryInMs =
+                                match (int ((message.Expiry - DateTime.UtcNow).TotalMilliseconds)) with
+                                | expiryMs when expiryMs < -1 -> -1
+                                | expiryMs -> expiryMs
+
+                            let! processingResult = agent.PostAndTryAsyncReply((fun ch -> messageBody, ch.Reply), expiryInMs) |> Async.CatchException
                             return
                                 match processingResult with
                                 | Error _
