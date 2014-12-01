@@ -9,3 +9,4 @@
 
 ### 0.3
 * Explicit session abandonment.
+* Batch message support.
