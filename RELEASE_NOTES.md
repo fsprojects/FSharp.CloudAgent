@@ -6,3 +6,6 @@
 
 ### 0.2 - Minor enhancements
 * Fixed a couple of bugs in resilient agents.
+
+### 0.3
+* Explicit session abandonment.

@@ -11,7 +11,7 @@ module internal Streams =
 
     /// Represents a stream of cloud messages.
     type ICloudMessageStream = 
-        abstract GetNextMessage : unit -> Async<SimpleCloudMessage option>
+        abstract GetNextMessage : TimeSpan -> Async<SimpleCloudMessage option>
         abstract CompleteMessage : Guid -> Async<unit>
         abstract AbandonMessage : Guid -> Async<unit>
         abstract DeadLetterMessage : Guid -> Async<unit>
@@ -20,6 +20,7 @@ module internal Streams =
     type IActorMessageStream = 
         inherit ICloudMessageStream
         abstract RenewSessionLock : unit -> Async<unit>
+        abstract AbandonSession : unit -> Async<unit>
         abstract SessionId : ActorKey
 
     type private QueueStream(receiver : MessageReceiver) = 
@@ -39,9 +40,9 @@ module internal Streams =
                 |> receiver.CompleteAsync
                 |> Async.AwaitTaskEmpty
             
-            member __.GetNextMessage() = 
+            member __.GetNextMessage(timeout) = 
                 async { 
-                    let! message = receiver.ReceiveAsync() |> Async.AwaitTask
+                    let! message = receiver.ReceiveAsync(timeout) |> Async.AwaitTask
                     match message with
                     | null -> return None
                     | message ->
@@ -53,17 +54,20 @@ module internal Streams =
     type private SessionisedQueueStream(session : MessageSession) = 
         inherit QueueStream(session)
         interface IActorMessageStream with
+            member __.AbandonSession() = session.CloseAsync() |> Async.AwaitTaskEmpty
             member __.RenewSessionLock() = session.RenewLockAsync() |> Async.AwaitTaskEmpty
             member __.SessionId = ActorKey session.SessionId
 
-    let CreateActorMessageStream (connectionString, queueName) = 
+    let CreateActorMessageStream (connectionString, queueName, timeout:TimeSpan) = 
         let queue = QueueClient.CreateFromConnectionString(connectionString, queueName)
         fun () -> 
             async { 
-                let! session = queue.AcceptMessageSessionAsync() |> Async.AwaitTask
-                return match session with
-                        | null -> None
-                        | session -> Some(SessionisedQueueStream session :> IActorMessageStream)
+                let! session = queue.AcceptMessageSessionAsync(timeout) |> Async.AwaitTask |> CatchException
+                return
+                    match session with
+                    | Error _
+                    | Result null -> None
+                    | Result session -> Some(SessionisedQueueStream session :> IActorMessageStream)
             }
 
     let CreateQueueStream(connectionString, queueName) =
@@ -128,9 +132,8 @@ module internal Helpers =
             async {
                 let! nextItem = getItem() |> Async.CatchException
                 match nextItem with
-                | Error _ | Result None ->
-                    do! Async.Sleep pollTime
-                    return! continuePolling()
+                | Error ex -> return! continuePolling()
+                | Result None -> return! continuePolling()
                 | Result (Some item) -> return item
             }
         continuePolling()

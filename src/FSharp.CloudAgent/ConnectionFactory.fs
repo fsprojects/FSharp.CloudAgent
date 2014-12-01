@@ -21,7 +21,7 @@ module internal Actors =
 
     /// Contains configuration details for connecting to an Actor Cloud.
     type ActorCloudOptions<'a> = 
-        {   PollTime : TimeSpan
+        {   PollTimeout : TimeSpan
             Serializer : ISerializer<'a>
             ActorStore : IActorStore<'a> }
 
@@ -35,11 +35,13 @@ module internal Actors =
             let processBrokeredMessage = processBrokeredMessage agent
             let rec continueProcessingStream() =
                 async {
-                    let! message = session.GetNextMessage() |> Async.CatchException
+                    let! message = session.GetNextMessage(options.PollTimeout) |> Async.CatchException
                     match cancellationToken.IsCancellationRequested, message with
                     | true, _
                     | _, Error _
-                    | _, Result None -> options.ActorStore.RemoveActor(session.SessionId)
+                    | _, Result None ->
+                        options.ActorStore.RemoveActor(session.SessionId)
+                        return! session.AbandonSession()
                     | _, Result(Some message) -> 
                         let! result = processBrokeredMessage message
                         do! match result with
@@ -57,7 +59,7 @@ module internal Actors =
         async { 
             let getNextSession = getNextSession |> withAutomaticRetry
             while not cancellationToken.IsCancellationRequested do
-                let! (session : IActorMessageStream) = getNextSession (options.PollTime.TotalMilliseconds |> int)
+                let! (session : IActorMessageStream) = getNextSession (options.PollTimeout.TotalMilliseconds |> int)
                 match cancellationToken.IsCancellationRequested with
                 | true -> ()
                 | false ->
@@ -79,7 +81,7 @@ module internal Workers =
 
     /// Binds CloudAgents to an Azure service bus queue using custom configuration options.
     let BindToCloud<'a>(messageStream:ICloudMessageStream, options : WorkerCloudOptions<'a>) = 
-        let getNextMessage = messageStream.GetNextMessage |> withAutomaticRetry
+        let getNextMessage = (fun() -> messageStream.GetNextMessage (options.PollTime)) |> withAutomaticRetry
         let processBrokeredMessage = ProcessBrokeredMessage options.Serializer
         let disposable, token = createDisposable()
         async {
@@ -124,8 +126,8 @@ let StartListening<'a>(cloudConnection, createAgentFunc) =
         let messageStream = CreateQueueStream(connection, queue)
         Workers.BindToCloud(messageStream, options)
     | ActorCloudConnection (ServiceBusConnection connection, Queue queue) ->
-        let options = { PollTime = TimeSpan.FromSeconds 10.; Serializer = JsonSerializer<'a>(); ActorStore = CreateActorStore(createAgentFunc) }
-        let getNextSessionStream = CreateActorMessageStream(connection, queue)
+        let options = { PollTimeout = TimeSpan.FromSeconds 10.; Serializer = JsonSerializer<'a>(); ActorStore = CreateActorStore(createAgentFunc) }
+        let getNextSessionStream = CreateActorMessageStream(connection, queue, options.PollTimeout)
         Actors.BindToCloud(getNextSessionStream, options)
 
 let private getConnectionString = function
