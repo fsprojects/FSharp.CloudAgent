@@ -59,11 +59,11 @@
                           <strong>Type parameters:</strong> 'a          </div>
         </td>
         <td class="xmldoc">
-            <a href="http://github.com/isaacabraham/FSharp.CloudAgent/tree/master/src/FSharp.CloudAgent/ConnectionFactory.fs#L138-138" class="github-link">
+            <a href="http://github.com/isaacabraham/FSharp.CloudAgent/tree/master/src/FSharp.CloudAgent/ConnectionFactory.fs#L142-142" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
-          <p>Posts a message to a pool of actors.</p>
+          <p>Posts a message to a single actor.</p>
 
         </td>
       </tr>
@@ -71,14 +71,33 @@
         <td class="member-name">
 
           <code onmouseout="hideTip(event, '2', 2)" onmouseover="showTip(event, '2', 2)">
-            SendToWorkerPool connection message
+            SendToActorPoolBatch (...)
           </code>
           <div class="tip" id="2">
+            <strong>Signature:</strong> connection:CloudConnection -&gt; ActorKey -&gt; messages:seq&lt;&#39;a&gt; -&gt; Async&lt;unit&gt;<br />
+                          <strong>Type parameters:</strong> 'a          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="http://github.com/isaacabraham/FSharp.CloudAgent/tree/master/src/FSharp.CloudAgent/ConnectionFactory.fs#L144-144" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Posts a collection of messages to a single actor.</p>
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '3', 3)" onmouseover="showTip(event, '3', 3)">
+            SendToWorkerPool connection message
+          </code>
+          <div class="tip" id="3">
             <strong>Signature:</strong> connection:CloudConnection -&gt; message:&#39;a -&gt; Async&lt;unit&gt;<br />
                           <strong>Type parameters:</strong> 'a          </div>
         </td>
         <td class="xmldoc">
-            <a href="http://github.com/isaacabraham/FSharp.CloudAgent/tree/master/src/FSharp.CloudAgent/ConnectionFactory.fs#L136-136" class="github-link">
+            <a href="http://github.com/isaacabraham/FSharp.CloudAgent/tree/master/src/FSharp.CloudAgent/ConnectionFactory.fs#L138-138" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
@@ -89,15 +108,34 @@
       <tr>
         <td class="member-name">
 
-          <code onmouseout="hideTip(event, '3', 3)" onmouseover="showTip(event, '3', 3)">
+          <code onmouseout="hideTip(event, '4', 4)" onmouseover="showTip(event, '4', 4)">
+            SendToWorkerPoolBatch (...)
+          </code>
+          <div class="tip" id="4">
+            <strong>Signature:</strong> connection:CloudConnection -&gt; messages:seq&lt;&#39;a&gt; -&gt; Async&lt;unit&gt;<br />
+                          <strong>Type parameters:</strong> 'a          </div>
+        </td>
+        <td class="xmldoc">
+            <a href="http://github.com/isaacabraham/FSharp.CloudAgent/tree/master/src/FSharp.CloudAgent/ConnectionFactory.fs#L140-140" class="github-link">
+              <img src="../content/img/github.png" class="normal" />
+              <img src="../content/img/github-blue.png" class="hover" />
+            </a>
+          <p>Posts a collection of messages to a pool of workers.</p>
+
+        </td>
+      </tr>
+      <tr>
+        <td class="member-name">
+
+          <code onmouseout="hideTip(event, '5', 5)" onmouseover="showTip(event, '5', 5)">
             StartListening (...)
           </code>
-          <div class="tip" id="3">
+          <div class="tip" id="5">
             <strong>Signature:</strong> (cloudConnection:CloudConnection * createAgentFunc:(ActorKey -&gt; CloudAgentKind&lt;&#39;a&gt;)) -&gt; IDisposable<br />
                           <strong>Type parameters:</strong> 'a          </div>
         </td>
         <td class="xmldoc">
-            <a href="http://github.com/isaacabraham/FSharp.CloudAgent/tree/master/src/FSharp.CloudAgent/ConnectionFactory.fs#L120-120" class="github-link">
+            <a href="http://github.com/isaacabraham/FSharp.CloudAgent/tree/master/src/FSharp.CloudAgent/ConnectionFactory.fs#L122-122" class="github-link">
               <img src="../content/img/github.png" class="normal" />
               <img src="../content/img/github-blue.png" class="hover" />
             </a>
