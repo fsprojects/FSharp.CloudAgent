@@ -136,5 +136,9 @@ let private getConnectionString = function
 
 /// Posts a message to a pool of workers.
 let SendToWorkerPool<'a> connection (message:'a) = postMessage (createMessageDispatcher <| getConnectionString connection) None message
-/// Posts a message to a pool of actors.
+/// Posts a collection of messages to a pool of workers.
+let SendToWorkerPoolBatch<'a> connection (messages:'a seq) = postMessages (createMessageDispatcher <| getConnectionString connection) None messages
+/// Posts a message to a single actor.
 let SendToActorPool<'a> connection (ActorKey recipient) (message:'a) = postMessage (createMessageDispatcher <| getConnectionString connection) (Some recipient) message
+/// Posts a collection of messages to a single actor.
+let SendToActorPoolBatch<'a> connection (ActorKey recipient) (messages:'a seq) = postMessages (createMessageDispatcher <| getConnectionString connection) (Some recipient) messages

@@ -155,12 +155,25 @@ module internal Dispatch =
             QueueName = queueName
             Serializer = JsonSerializer<'a>() }
 
+    let private toBrokeredMessage options sessionId message =
+        let payload = message |> options.Serializer.Serialize
+        new BrokeredMessage(payload, SessionId = defaultArg sessionId null)
+
+    let postMessages (options:MessageDispatcher<'a>) sessionId messages =
+        let toBrokeredMessage = toBrokeredMessage options sessionId
+        async { 
+            let brokeredMessages = 
+                messages
+                |> Seq.map toBrokeredMessage 
+                |> Seq.toArray
+            
+            let queueClient = QueueClient.CreateFromConnectionString(options.ServiceBusConnectionString, options.QueueName)
+            do! brokeredMessages |> queueClient.SendBatchAsync |> Async.AwaitTaskEmpty
+        }
+
     let postMessage (options:MessageDispatcher<'a>) sessionId message =
         async { 
-            use brokeredMessage = 
-                let payload = message |> options.Serializer.Serialize
-                new BrokeredMessage(payload, SessionId = defaultArg sessionId null)
-                            
+            use brokeredMessage = message |> toBrokeredMessage options sessionId
             let queueClient = QueueClient.CreateFromConnectionString(options.ServiceBusConnectionString, options.QueueName)
             do! brokeredMessage |> queueClient.SendAsync |> Async.AwaitTaskEmpty
         }
