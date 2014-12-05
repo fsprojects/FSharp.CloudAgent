@@ -35,7 +35,7 @@ module internal Actors =
             let processBrokeredMessage = processBrokeredMessage agent
             let rec continueProcessingStream() =
                 async {
-                    let! message = session.GetNextMessage(options.PollTimeout) |> Async.CatchException
+                    let! message = session.GetNextMessage(options.PollTimeout) |> Async.Catch
                     match cancellationToken.IsCancellationRequested, message with
                     | true, _
                     | _, Error _
@@ -48,7 +48,7 @@ module internal Actors =
                             | Completed -> session.CompleteMessage(message.LockToken)
                             | Failed -> session.AbandonMessage(message.LockToken)
                             | Abandoned -> session.DeadLetterMessage(message.LockToken)
-                        let! renewal = session.RenewSessionLock() |> Async.CatchException
+                        let! renewal = session.RenewSessionLock() |> Async.Catch
                         match renewal with
                         | Result() -> return! continueProcessingStream()
                         | Error _ -> options.ActorStore.RemoveActor(session.SessionId)

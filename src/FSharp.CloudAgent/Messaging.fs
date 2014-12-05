@@ -62,7 +62,7 @@ module internal Streams =
         let queue = QueueClient.CreateFromConnectionString(connectionString, queueName)
         fun () -> 
             async { 
-                let! session = queue.AcceptMessageSessionAsync(timeout) |> Async.AwaitTask |> CatchException
+                let! session = queue.AcceptMessageSessionAsync(timeout) |> Async.AwaitTask |> Async.Catch
                 return
                     match session with
                     | Error _
@@ -97,7 +97,7 @@ module internal Helpers =
     /// and processing by the target queue.
     let ProcessBrokeredMessage<'a> (serializer:ISerializer<'a>) (agent:CloudAgentKind<'a>) message =
         async {
-            let! messageBody = async { return serializer.Deserialize(message.Body) } |> Async.CatchException
+            let! messageBody = async { return serializer.Deserialize(message.Body) } |> Async.Catch
             let! processResult =
                 match messageBody with
                 | Error _ -> async { return Failed } // could not deserialize
@@ -115,7 +115,7 @@ module internal Helpers =
                                 | expiryMs when expiryMs < -1 -> -1
                                 | expiryMs -> expiryMs
 
-                            let! processingResult = agent.PostAndTryAsyncReply((fun ch -> messageBody, ch.Reply), expiryInMs) |> Async.CatchException
+                            let! processingResult = agent.PostAndTryAsyncReply((fun ch -> messageBody, ch.Reply), expiryInMs) |> Async.Catch
                             return
                                 match processingResult with
                                 | Error _
@@ -130,7 +130,7 @@ module internal Helpers =
     let withAutomaticRetry getItem pollTime =
         let rec continuePolling() =
             async {
-                let! nextItem = getItem() |> Async.CatchException
+                let! nextItem = getItem() |> Async.Catch
                 match nextItem with
                 | Error ex -> return! continuePolling()
                 | Result None -> return! continuePolling()

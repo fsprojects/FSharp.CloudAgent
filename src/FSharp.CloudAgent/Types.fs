@@ -18,18 +18,11 @@ module internal Async =
                 else onCancellation (System.OperationCanceledException()))
             |> ignore)
     
-    type AsyncResult<'T> = 
-        | Error of Exception : Exception
-        | Result of Result : 'T
-    
-    let CatchException workflow = 
-        async { 
-            let! result = workflow |> Async.Catch
-            return
-                match result with
-                | Choice1Of2 result -> Result result
-                | Choice2Of2 ex -> Error ex
-        }
+    let (|Result|Error|) =
+        function
+        | Choice1Of2 result -> Result result
+        | Choice2Of2 (ex:Exception) -> Error ex
+
 namespace FSharp.CloudAgent.Connections
 
 /// Represents details of a connection to an Azure Service Bus.
