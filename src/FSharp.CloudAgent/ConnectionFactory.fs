@@ -92,7 +92,7 @@ module internal Workers =
                 match token.IsCancellationRequested with
                 | true ->
                     // If a cancellation request has occurred, don't process the last received message
-                    // - just throw it back to the message provider.
+                    // just throw it back to the message provider.
                     messageStream.AbandonMessage message.LockToken |> ignore
                 | false ->
                     // Place the following code in its own async block so it works in the background and we can

@@ -1,8 +1,8 @@
 ﻿#I @"..\..\src\FSharp.CloudAgent\"
 #I @"..\..\packages\"
 
-#r @"WindowsAzure.ServiceBus.2.4.4.0\lib\net40-full\Microsoft.ServiceBus.dll"
-#r @"Newtonsoft.Json.6.0.5\lib\net45\Newtonsoft.Json.dll"
+#r @"WindowsAzure.ServiceBus\lib\net40-full\Microsoft.ServiceBus.dll"
+#r @"Newtonsoft.Json\lib\net45\Newtonsoft.Json.dll"
 #r @"System.Runtime.Serialization.dll"
 #load "Types.fs"
 #load "Actors.fs"
@@ -50,7 +50,7 @@ disposable.Dispose()
 (* ------------- Resilient F# Agent using Service Bus to ensure processing of messages --------------- *)
 
 let createResilientAgent (ActorKey actorKey) =
-    new MailboxProcessor<ResilientMessage<Person>>(fun mailbox ->
+    MailboxProcessor.Start(fun mailbox ->
         async {
             while true do
                 let! message, reply = mailbox.Receive()                

@@ -25,7 +25,7 @@ module internal Factory =
     let private createActorStore<'a> createAgent = 
         let actorStore = 
             new ActorStoreAgent<'a>(fun inbox -> 
-                let actors = Dictionary<string, CloudAgentKind<'a>>()
+                let actors = Dictionary()
                 async { 
                     while true do
                         let! message, replyChannel = inbox.Receive()
