@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8"/>
-    <title>Handling Errors
+    <title>About Azure Service Bus
 </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="description" content="Allows the use of F# Agents in Azure."/>
@@ -33,27 +33,56 @@
       <div class="row">
         <div class="span9" id="main">
           
-<h1>Handling Errors</h1>
+<h1>About Azure Service Bus</h1>
 
-<p>Your approach towards error handling will most likely differ depending on the type of agent
-pool (irrespective of whether worker or actor) being used.</p>
+<p>This article is not meant to replace the reams of documentation available on <a href="http://azure.microsoft.com/en-us/services/service-bus/">Azure</a>
+or <a href="http://msdn.microsoft.com/en-us/library/azure/ee732537.aspx">MSDN</a>, but give a quick guide on how to get up an running with
+service bus for the purposes of FSharp.CloudAgent, and how to map Azure Service Bus
+concepts to F# Agents.</p>
 
-<h2>Basic Agents</h2>
+<h2>Azure Service Bus Overview</h2>
 
-<p>Basic agents work on an "at-most-once" delivery mechanism to F# agents. This means that it is
-entirely your responsibility to be able to guarantee processing of these messages. You should
-cater for logging out failures as well as persisting failed messages to some persistance store
-for later inspection. If an agent crashes due to an unhandled exception, your message will be
-lost permanently.</p>
+<p>Azure Service Bus provides a simple and cheap distributed messaging framework that runs
+in the Azure cloud. It comes in several flavours - the part that CloudAgent harnesses is
+that of <a href="http://azure.microsoft.com/en-us/documentation/articles/service-bus-dotnet-how-to-use-queues/">Service Bus Queues</a>, which provides reliable messaging
+through storage-backed queues in Azure that can have multiple consumers. In the context
+of CloudAgent, each consumer is a worker node i.e. .NET process that runs a number of
+F# agents to process messages. CloudAgent manages the lifetime of agents as needed, 
+handing out messages as they arrive to the agent pool for processing, as well as relaying
+completion messages back to the Service Bus from agents.</p>
 
-<h2>Resilient Agents</h2>
+<h2>Service Bus Queues key concepts</h2>
 
-<p>Reslient agents work on an "at-least-once" delivery mechanism. Failed messages will automatically
-be redelivered until the queue marks them as dead lettered. If an agent crashes due to an unhandled
-exception, your message will be automatically re-delivered once it expires. If you set this expiry
-too long, you may wish to consider wrapping your agent processing code in a try catch or other
-exception handling pattern and immediately returning a Failed to the CloudAgent framework to short-
-circuit this wait.</p>
+<p>Within the context of CloudAgent, Service Bus Queues provide the following key features: -</p>
+
+<ul>
+<li><strong>Reliable</strong>. Service Bus Queues guarantee message <em>delivery to</em> and <em>processing by</em> consumers.
+If a message is not completed within a specified timeout, it is made available for processing
+again by another consumer. Thus, distributed message processing in CloudAgent takes the form
+of <em>at-least-once</em> processing; a message will be processed <em>at least once</em>, but depending on
+whether the consumer successfully "completes" the message, it may be re-processed by other
+consumers. Your agents should be written to handle messages in an idempotent manner, or at
+least detect repeat messages.</li>
+<li><strong>High throughput</strong>. Supports up to 2k messages / sec per queue, with average latency of
+20-25ms.</li>
+<li><strong>Cheap</strong>. $0.01 per 10k messages.</li>
+<li><strong>Sessionised</strong>. Service Bus Queues provide the ability to ensure sequential delivery of
+messages that are partitioned based on an arbitrary "SessionId". This forms the basis of
+Actor support within CloudAgent; an ActorKey is mapped to the SessionId of individual
+messages, thus ensuring that messages for the same Actor are delivered to the same consumer
+in sequence.</li>
+</ul>
+
+<h2>How to create a Service Bus Queue</h2>
+
+<p>Follow the guidance <a href="http://azure.microsoft.com/en-us/documentation/articles/service-bus-dotnet-how-to-use-queues/">here</a> to create a new service bus namespace.
+Once the namespace is created, you can generate a Queue through Visual Studio or in code.</p>
+
+<img src="img/queues-in-vs.png"/>
+<img src="img/create-a-queue.png"/>
+
+<p>It is important to understand that for Actor pools, you <em>must</em> turn on Session support
+when creating the queue; likewise for Worker pools, Session support must be turned <em>off</em>.</p>
 
 
         </div>
