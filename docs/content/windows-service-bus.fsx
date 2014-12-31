@@ -2,7 +2,7 @@
 About Windows Service Bus
 =======================
 Windows Service Bus (WSB) can be thought of as an on-premises version of Azure Service
-Bus. As such, everything mentioned in the [azure-service-bus] section still holds true
+Bus. As such, everything mentioned in the [Azure Service Bus](azure-service-bus.html) section still holds true
 in terms of operations and application within Cloud Agent. The difference with WSB is
 that you manage the service bus yourself on your network, and can host all entire
 internally on your network. This article will provide some simple instructions on

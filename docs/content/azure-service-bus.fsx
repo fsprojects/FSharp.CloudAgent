@@ -6,6 +6,9 @@ or [MSDN] [msdn-service-bus], but give a quick guide on how to get up an running
 service bus for the purposes of FSharp.CloudAgent, and how to map Azure Service Bus
 concepts to F# Agents.
 
+Note: if you do not want to use Azure, you can self-host using the [Windows Service Bus](windows-service-bus.html). Read through
+this article first as the principles are the same, and then read that one for installation guidance.
+
 Azure Service Bus Overview
 --------------------------
 Azure Service Bus provides a simple and cheap distributed messaging framework that runs
