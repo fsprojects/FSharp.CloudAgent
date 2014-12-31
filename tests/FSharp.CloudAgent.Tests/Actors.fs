@@ -22,27 +22,27 @@ let ``ActorStore creates new actors``() =
     actorStore.GetActor (ActorKey "isaac") |> ignore
 
 [<Test>]
-let ``ActorStore Automatically starts agents``() =
+let ``ActorStore automatically starts agents``() =
     let actorStore = getActorStore()
     let (BasicCloudAgent isaac) = actorStore.GetActor (ActorKey "isaac")
     isaac |> assertAgentIsStarted
 
 [<Test>]
-let ``ActorStore Manages multiple new actors``() =
+let ``ActorStore manages multiple new actors``() =
     let actorStore = getActorStore()
     let isaac = actorStore.GetActor (ActorKey "isaac")
     let tony = actorStore.GetActor (ActorKey "tony")
     isaac <>? tony
 
 [<Test>]
-let ``ActorStore Reuses existing actors``() =
+let ``ActorStore reuses existing actors``() =
     let actorStore = getActorStore()
     let first = actorStore.GetActor (ActorKey "isaac")
     let second = actorStore.GetActor (ActorKey "isaac")
     first =? second
 
 [<Test>]
-let ``ActorStore Removes existing actors``() =
+let ``ActorStore removes existing actors``() =
     let actorStore = getActorStore()
     let first = actorStore.GetActor (ActorKey "isaac")
     actorStore.RemoveActor (ActorKey "isaac")
@@ -50,7 +50,7 @@ let ``ActorStore Removes existing actors``() =
     first <>? second
 
 [<Test>]
-let ``ActorStore Disposes of removed agents``() =
+let ``ActorStore disposes of removed agents``() =
     let actorStore = getActorStore()
     let (BasicCloudAgent isaac) = actorStore.GetActor (ActorKey "isaac")
     actorStore.RemoveActor (ActorKey "isaac")

@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30723.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{50DF2A1D-B16F-4226-9E32-91999C64DB5D}"
 	ProjectSection(SolutionItems) = preProject
@@ -29,9 +29,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{8E6D5255-776D-4B61-85F9-73C37AA1FB9A}"
 	ProjectSection(SolutionItems) = preProject
 		docs\content\agent-paradigms.fsx = docs\content\agent-paradigms.fsx
+		docs\content\azure-service-bus.fsx = docs\content\azure-service-bus.fsx
 		docs\content\handling-errors.fsx = docs\content\handling-errors.fsx
 		docs\content\index.fsx = docs\content\index.fsx
-		docs\content\service-bus.fsx = docs\content\service-bus.fsx
 		docs\content\tutorial.fsx = docs\content\tutorial.fsx
 	EndProjectSection
 EndProject
