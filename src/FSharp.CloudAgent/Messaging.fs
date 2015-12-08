@@ -3,6 +3,7 @@
 open FSharp.CloudAgent
 open System
 open Newtonsoft.Json
+open System.Runtime.Serialization
 
 [<AutoOpen>]
 module internal Streams = 
@@ -23,7 +24,7 @@ module internal Streams =
         abstract AbandonSession : unit -> Async<unit>
         abstract SessionId : ActorKey
 
-    type private QueueStream(receiver : MessageReceiver) = 
+    type private QueueStream(receiver : MessageReceiver, wireSerializer : XmlObjectSerializer) =
         interface ICloudMessageStream with            
             member __.DeadLetterMessage(token) = 
                 token
@@ -46,19 +47,19 @@ module internal Streams =
                     match message with
                     | null -> return None
                     | message ->
-                        return Some {   Body = message.GetBody<string>()
+                        return Some {   Body = message.GetBody<string>(wireSerializer)
                                         LockToken = message.LockToken
                                         Expiry = message.ExpiresAtUtc }
                 }
     
-    type private SessionisedQueueStream(session : MessageSession) = 
-        inherit QueueStream(session)
+    type private SessionisedQueueStream(session : MessageSession, wireSerializer : XmlObjectSerializer) =
+        inherit QueueStream(session, wireSerializer)
         interface IActorMessageStream with
             member __.AbandonSession() = session.CloseAsync() |> Async.AwaitTaskEmpty
             member __.RenewSessionLock() = session.RenewLockAsync() |> Async.AwaitTaskEmpty
             member __.SessionId = ActorKey session.SessionId
 
-    let CreateActorMessageStream (connectionString, queueName, timeout:TimeSpan) = 
+    let CreateActorMessageStream (connectionString, queueName, timeout:TimeSpan, wireSerializer) =
         let queue = QueueClient.CreateFromConnectionString(connectionString, queueName)
         fun () -> 
             async { 
@@ -67,12 +68,12 @@ module internal Streams =
                     match session with
                     | Error _
                     | Result null -> None
-                    | Result session -> Some(SessionisedQueueStream session :> IActorMessageStream)
+                    | Result session -> Some(SessionisedQueueStream (session, wireSerializer) :> IActorMessageStream)
             }
 
-    let CreateQueueStream(connectionString, queueName) =
+    let CreateQueueStream(connectionString, queueName, wireSerializer) =
         let queueReceiver = MessagingFactory.CreateFromConnectionString(connectionString).CreateMessageReceiver(queueName)
-        QueueStream(queueReceiver) :> ICloudMessageStream
+        QueueStream(queueReceiver, wireSerializer) :> ICloudMessageStream
 
 [<AutoOpen>]
 module internal Serialization =

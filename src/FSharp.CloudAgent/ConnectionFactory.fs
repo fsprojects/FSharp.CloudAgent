@@ -5,6 +5,7 @@ open FSharp.CloudAgent
 open FSharp.CloudAgent.Actors
 open FSharp.CloudAgent.Messaging
 open System
+open System.Runtime.Serialization
 
 [<AutoOpen>]
 module internal Helpers =
@@ -119,16 +120,26 @@ open FSharp.CloudAgent.Actors.Factory
 /// </summary>
 /// <param name="cloudConnection">The connection to the Azure service bus that will provide messages.</param>
 /// <param name="createAgentFunc">A function that can create a single F# Agent to handle messages.</param>
-let StartListening<'a>(cloudConnection, createAgentFunc) =
+/// <param name="wireSerializer">An XmlObjectSerializer used to serialize data stream coming off the service bus.</param>
+let StartListeningWithWireSerializer<'a>(cloudConnection, createAgentFunc, wireSerializer) =
     match cloudConnection with
     | WorkerCloudConnection (ServiceBusConnection connection, Queue queue) ->
         let options = { PollTime = TimeSpan.FromSeconds 10.; Serializer = JsonSerializer<'a>(); GetNextAgent = CreateAgentSelector(512, createAgentFunc) }
-        let messageStream = CreateQueueStream(connection, queue)
+        let messageStream = CreateQueueStream(connection, queue, wireSerializer)
         Workers.BindToCloud(messageStream, options)
     | ActorCloudConnection (ServiceBusConnection connection, Queue queue) ->
         let options = { PollTimeout = TimeSpan.FromSeconds 10.; Serializer = JsonSerializer<'a>(); ActorStore = CreateActorStore(createAgentFunc) }
-        let getNextSessionStream = CreateActorMessageStream(connection, queue, options.PollTimeout)
+        let getNextSessionStream = CreateActorMessageStream(connection, queue, options.PollTimeout, wireSerializer)
         Actors.BindToCloud(getNextSessionStream, options)
+
+/// <summary>
+/// Starts listening to Azure for messages that are handled by agents.
+/// </summary>
+/// <param name="cloudConnection">The connection to the Azure service bus that will provide messages.</param>
+/// <param name="createAgentFunc">A function that can create a single F# Agent to handle messages.</param>
+let StartListening<'a>(cloudConnection, createAgentFunc) =
+    let wireSerializer = new DataContractSerializer(typeof<string>)
+    StartListeningWithWireSerializer(cloudConnection, createAgentFunc, wireSerializer)
 
 let private getConnectionString = function
 | WorkerCloudConnection (ServiceBusConnection connection, Queue queue) -> connection, queue
