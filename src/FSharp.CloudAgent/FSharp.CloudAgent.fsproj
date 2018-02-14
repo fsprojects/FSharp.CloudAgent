@@ -10,7 +10,7 @@
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
     <OutputPath>..\..\bin\</OutputPath>
-    <DocumentationFile>..\..\bin\FSharp.CloudAgent.XML</DocumentationFile>
+    <DocumentationFile>FSharp.CloudAgent.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Types.fs" />
