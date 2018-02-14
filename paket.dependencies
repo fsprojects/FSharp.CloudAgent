@@ -1,10 +1,13 @@
 source http://nuget.org/api/v2
+framework: net451
 
+nuget FSharp.Core redirects: force
 nuget FAKE
 nuget SourceLink.Fake
 nuget FSharp.Formatting
 nuget NUnit
-nuget NUnit.Runners
-nuget WindowsAzure.ServiceBus
+nuget NUnit.Console
+nuget Microsoft.WindowsAzure.ConfigurationManager 2.0.3
+nuget WindowsAzure.ServiceBus 2.5.2
 nuget Newtonsoft.Json
-nuget Unquote
+nuget Unquote 2.2.2
