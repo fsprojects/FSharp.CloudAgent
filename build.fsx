@@ -3,6 +3,7 @@
 // --------------------------------------------------------------------------------------
 
 #r @"packages/FAKE/tools/NuGet.Core.dll"
+open Fake.Testing
 #r @"packages/FAKE/tools/FakeLib.dll"
 open Fake
 open Fake.Git
@@ -91,11 +92,10 @@ Target "Build" (fun _ ->
 
 Target "RunTests" (fun _ ->
         !! testAssemblies
-        |> NUnit (fun p ->
+        |> NUnit3 (fun p ->
             { p with
-                DisableShadowCopy = true
-                TimeOut = TimeSpan.FromMinutes 20.
-                OutputFile = "TestResults.xml" })
+                ShadowCopy = true
+                TimeOut = TimeSpan.FromMinutes 20. })
 )
 
 #if MONO
