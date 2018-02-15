@@ -3,6 +3,7 @@
 // --------------------------------------------------------------------------------------
 
 #r @"packages/FAKE/tools/NuGet.Core.dll"
+open Fake.Testing
 #r @"packages/FAKE/tools/FakeLib.dll"
 open Fake
 open Fake.Git
@@ -21,7 +22,7 @@ let description = "FSharp.CloudAgent provides the capability to run standard F# 
 let authors = [ "Isaac Abraham" ]
 let tags = "f# agent actor azure service-bus"
 let solutionFile  = "FSharp.CloudAgent.sln"
-let testAssemblies = "tests/**/bin/Release/*Tests*.dll"
+let testAssemblies = "tests/**/bin/Release/net451/*Tests*.dll"
 let gitHome = "https://github.com/isaacabraham"
 let gitName = "FSharp.CloudAgent"
 let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/isaacabraham"
@@ -91,11 +92,10 @@ Target "Build" (fun _ ->
 
 Target "RunTests" (fun _ ->
         !! testAssemblies
-        |> NUnit (fun p ->
+        |> NUnit3 (fun p ->
             { p with
-                DisableShadowCopy = true
-                TimeOut = TimeSpan.FromMinutes 20.
-                OutputFile = "TestResults.xml" })
+                ShadowCopy = true
+                TimeOut = TimeSpan.FromMinutes 20. })
 )
 
 #if MONO
