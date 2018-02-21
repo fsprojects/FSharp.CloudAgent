@@ -1,4 +1,4 @@
-FSharp.Core
+Microsoft.NET.Test.Sdk
 NUnit
-NUnit.Console
+NUnit3TestAdapter
 Unquote

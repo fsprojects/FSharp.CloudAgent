@@ -11,12 +11,13 @@ open System.Threading
 [<Test>]
 let ``Passes deserialized object into agent``() =
     let person, agent = getBasicAgent()
-    let _ = { Person.Name = "Isaac" }
-            |> createPersonMessage
-            |> processPersonMessage agent
-            |> Async.RunSynchronously
+    { Person.Name = "Isaac" }
+    |> createPersonMessage
+    |> processPersonMessage agent
+    |> Async.RunSynchronously
+    |> ignore
     Async.Sleep(100) |> Async.RunSynchronously
-    !person =? { Person.Name = "Isaac" }
+    person =! { Person.Name = "Isaac" }
 
 [<Test>]
 let ``Immediately returns completed for BasicCloudAgent``() =
@@ -25,7 +26,7 @@ let ``Immediately returns completed for BasicCloudAgent``() =
                  |> createPersonMessage
                  |> processPersonMessage agent
                  |> Async.RunSynchronously
-    result =? Completed
+    result =! Completed
 
 [<Test>]
 let ``Serialization failure immediately returns Failed``() =
@@ -35,7 +36,7 @@ let ``Serialization failure immediately returns Failed``() =
         createMessage serializer (DateTime.UtcNow.AddSeconds 10.) { Name = { Name = "Isaac" } }
 
     let result = message |> processPersonMessage agent |> Async.RunSynchronously
-    result =? Failed
+    result =! Failed
 
 [<Test>]
 let ``Returns result from Resilient agent``() =
@@ -44,7 +45,7 @@ let ``Returns result from Resilient agent``() =
                  |> createPersonMessage
                  |> processPersonMessage agent
                  |> Async.RunSynchronously
-    result =? Abandoned
+    result =! Abandoned
 
 [<Test>]
 let ``No result from Resilient agent returns Failed``() =
@@ -53,7 +54,7 @@ let ``No result from Resilient agent returns Failed``() =
                  |> createMessage personSerializer (DateTime.UtcNow.AddSeconds 2.)
                  |> processPersonMessage agent
                  |> Async.RunSynchronously
-    result =? Failed
+    result =! Failed
 
 [<Test>]
 let ``Exception from Resilient agent returns Failed``() =
@@ -62,7 +63,7 @@ let ``Exception from Resilient agent returns Failed``() =
                  |> createMessage personSerializer (DateTime.UtcNow.AddSeconds 2.)
                  |> processPersonMessage agent
                  |> Async.RunSynchronously
-    result =? Failed
+    result =! Failed
 
 [<Test>]
 let ``Message with maximum expiry time is correctly processed``() =
@@ -71,5 +72,5 @@ let ``Message with maximum expiry time is correctly processed``() =
                  |> createMessage personSerializer DateTime.MaxValue
                  |> processPersonMessage agent
                  |> Async.RunSynchronously
-    result =? Completed
+    result =! Completed
     

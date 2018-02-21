@@ -32,14 +32,14 @@ let ``ActorStore manages multiple new actors``() =
     let actorStore = getActorStore()
     let isaac = actorStore.GetActor (ActorKey "isaac")
     let tony = actorStore.GetActor (ActorKey "tony")
-    isaac <>? tony
+    isaac <>! tony
 
 [<Test>]
 let ``ActorStore reuses existing actors``() =
     let actorStore = getActorStore()
     let first = actorStore.GetActor (ActorKey "isaac")
     let second = actorStore.GetActor (ActorKey "isaac")
-    first =? second
+    first =! second
 
 [<Test>]
 let ``ActorStore removes existing actors``() =
@@ -47,7 +47,7 @@ let ``ActorStore removes existing actors``() =
     let first = actorStore.GetActor (ActorKey "isaac")
     actorStore.RemoveActor (ActorKey "isaac")
     let second = actorStore.GetActor (ActorKey "isaac")
-    first <>? second
+    first <>! second
 
 [<Test>]
 let ``ActorStore disposes of removed agents``() =

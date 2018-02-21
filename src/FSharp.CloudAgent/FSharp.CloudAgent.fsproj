@@ -1,10 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>FSharp.AzureActors</RootNamespace>
     <AssemblyName>FSharp.CloudAgent</AssemblyName>
-    <TargetFramework>net451</TargetFramework>
+    <TargetFramework>netstandard20</TargetFramework>
     <Name>FSharp.CloudAgent</Name>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
@@ -12,6 +11,7 @@
     <OutputPath>..\..\bin\</OutputPath>
     <DocumentationFile>FSharp.CloudAgent.XML</DocumentationFile>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Types.fs" />
     <Compile Include="Messaging.fs" />
@@ -21,5 +21,6 @@
     <Content Include="paket.references" />
     <Content Include="app.config" />
   </ItemGroup>
+
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

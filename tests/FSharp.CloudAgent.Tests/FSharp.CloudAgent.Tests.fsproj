@@ -1,15 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Name>FSharp.CloudAgent.Tests</Name>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net451</TargetFramework>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <Tailcalls>true</Tailcalls>
+    <TargetFramework>netcoreapp20</TargetFramework>
     <DocumentationFile>FSharp.CloudAgent.Tests.xml</DocumentationFile>
   </PropertyGroup>
-  <Import Project="..\..\.nuget\NuGet.targets" Condition="Exists('..\..\.nuget\NuGet.targets')" />
+  
   <ItemGroup>
     <Compile Include="Helpers.fs" />
     <Compile Include="ProcessBrokeredMessage.fs" />
@@ -18,11 +13,11 @@
     <None Include="paket.references" />
     <None Include="Script.fsx" />
     <Content Include="app.config" />
-    <ProjectReference Include="..\..\src\FSharp.CloudAgent\FSharp.CloudAgent.fsproj">
-      <Name>FSharp.CloudAgent</Name>
-      <Project>{f6147cd2-21e8-41ce-926f-9ab32eab770d}</Project>
-      <Private>True</Private>
-    </ProjectReference>
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FSharp.CloudAgent\FSharp.CloudAgent.fsproj"/>
+  </ItemGroup>
+  
   <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

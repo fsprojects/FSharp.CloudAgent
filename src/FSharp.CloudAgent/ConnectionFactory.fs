@@ -5,7 +5,6 @@ open FSharp.CloudAgent
 open FSharp.CloudAgent.Actors
 open FSharp.CloudAgent.Messaging
 open System
-open System.Runtime.Serialization
 
 [<AutoOpen>]
 module internal Helpers =
@@ -45,7 +44,8 @@ module internal Actors =
                         return! session.AbandonSession()
                     | _, Result(Some message) -> 
                         let! result = processBrokeredMessage message
-                        do! match result with
+                        do!
+                            match result with
                             | Completed -> session.CompleteMessage(message.LockToken)
                             | Failed -> session.AbandonMessage(message.LockToken)
                             | Abandoned -> session.DeadLetterMessage(message.LockToken)
@@ -71,8 +71,6 @@ module internal Actors =
         disposable
 
 module internal Workers =
-    open System
-    open FSharp.CloudAgent.Messaging
     open FSharp.CloudAgent.Actors.Factory
 
     type WorkerCloudOptions<'a> = 
@@ -120,16 +118,15 @@ open FSharp.CloudAgent.Actors.Factory
 /// </summary>
 /// <param name="cloudConnection">The connection to the Azure service bus that will provide messages.</param>
 /// <param name="createAgentFunc">A function that can create a single F# Agent to handle messages.</param>
-/// <param name="wireSerializer">An XmlObjectSerializer used to serialize data stream coming off the service bus.</param>
-let StartListeningWithWireSerializer<'a>(cloudConnection, createAgentFunc, wireSerializer) =
+let StartListeningWithWireSerializer<'a>(cloudConnection, createAgentFunc) =
     match cloudConnection with
     | WorkerCloudConnection (ServiceBusConnection connection, Queue queue) ->
         let options = { PollTime = TimeSpan.FromSeconds 10.; Serializer = JsonSerializer<'a>(); GetNextAgent = CreateAgentSelector(512, createAgentFunc) }
-        let messageStream = CreateQueueStream(connection, queue, wireSerializer)
+        let messageStream = CreateQueueStream(connection, queue)
         Workers.BindToCloud(messageStream, options)
     | ActorCloudConnection (ServiceBusConnection connection, Queue queue) ->
         let options = { PollTimeout = TimeSpan.FromSeconds 10.; Serializer = JsonSerializer<'a>(); ActorStore = CreateActorStore(createAgentFunc) }
-        let getNextSessionStream = CreateActorMessageStream(connection, queue, options.PollTimeout, wireSerializer)
+        let getNextSessionStream = CreateActorMessageStream(connection, queue, options.PollTimeout)
         Actors.BindToCloud(getNextSessionStream, options)
 
 /// <summary>
@@ -138,8 +135,7 @@ let StartListeningWithWireSerializer<'a>(cloudConnection, createAgentFunc, wireS
 /// <param name="cloudConnection">The connection to the Azure service bus that will provide messages.</param>
 /// <param name="createAgentFunc">A function that can create a single F# Agent to handle messages.</param>
 let StartListening<'a>(cloudConnection, createAgentFunc) =
-    let wireSerializer = new DataContractSerializer(typeof<string>)
-    StartListeningWithWireSerializer(cloudConnection, createAgentFunc, wireSerializer)
+    StartListeningWithWireSerializer(cloudConnection, createAgentFunc)
 
 let private getConnectionString = function
 | WorkerCloudConnection (ServiceBusConnection connection, Queue queue) -> connection, queue

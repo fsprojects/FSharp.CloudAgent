@@ -8,15 +8,6 @@ type ActorKey =
 [<AutoOpen>]
 module internal Async = 
     open System
-    open System.Threading.Tasks
-    
-    let AwaitTaskEmpty(task : Task) = 
-        Async.FromContinuations(fun (onSuccess, onException, onCancellation) -> 
-            task.ContinueWith(fun t -> 
-                if t.IsCompleted then onSuccess()
-                elif t.IsFaulted then onException (t.Exception)
-                else onCancellation (System.OperationCanceledException()))
-            |> ignore)
     
     let (|Result|Error|) =
         function
@@ -63,6 +54,6 @@ type CloudAgentKind<'a> =
 
 /// Contains the raw data of a cloud message.
 type internal SimpleCloudMessage = 
-    { Body : string
-      LockToken : Guid
+    { Body : byte[]
+      LockToken : string
       Expiry : DateTime }

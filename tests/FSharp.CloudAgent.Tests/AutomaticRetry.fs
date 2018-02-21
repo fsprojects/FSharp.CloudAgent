@@ -18,10 +18,10 @@ let ``Automatically retries until a result is found``() =
         |> Seq.map(fun x -> async { return x })
         |> toGetNext
     let value = withAutomaticRetry getNext 0 |> Async.RunSynchronously
-    5 =? value
+    5 =! value
 
 [<Test>]
 let ``Automatically handles exceptions``() =
     let getNext = seq { yield async { failwith "foo"; return None }; yield async { return Some 5 } } |> toGetNext
     let value = withAutomaticRetry getNext 0 |> Async.RunSynchronously
-    5 =? value
+    5 =! value

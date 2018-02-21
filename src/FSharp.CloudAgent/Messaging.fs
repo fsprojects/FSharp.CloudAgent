@@ -1,21 +1,21 @@
 ﻿namespace FSharp.CloudAgent.Messaging
 
 open FSharp.CloudAgent
-open System
 open Newtonsoft.Json
-open System.Runtime.Serialization
+open System
 
 [<AutoOpen>]
 module internal Streams = 
-    open Microsoft.ServiceBus.Messaging
+    open Microsoft.Azure.ServiceBus
+    open Microsoft.Azure.ServiceBus.Core
     open FSharp.CloudAgent.Messaging
 
     /// Represents a stream of cloud messages.
     type ICloudMessageStream = 
         abstract GetNextMessage : TimeSpan -> Async<SimpleCloudMessage option>
-        abstract CompleteMessage : Guid -> Async<unit>
-        abstract AbandonMessage : Guid -> Async<unit>
-        abstract DeadLetterMessage : Guid -> Async<unit>
+        abstract CompleteMessage : string -> Async<unit>
+        abstract AbandonMessage : string -> Async<unit>
+        abstract DeadLetterMessage : string -> Async<unit>
 
     /// Represents a stream of messages for a specific actor.
     type IActorMessageStream = 
@@ -24,22 +24,22 @@ module internal Streams =
         abstract AbandonSession : unit -> Async<unit>
         abstract SessionId : ActorKey
 
-    type private QueueStream(receiver : MessageReceiver, wireSerializer : XmlObjectSerializer) =
+    type private QueueStream(receiver : IMessageReceiver) =
         interface ICloudMessageStream with            
             member __.DeadLetterMessage(token) = 
                 token
                 |> receiver.DeadLetterAsync
-                |> Async.AwaitTaskEmpty
+                |> Async.AwaitTask
             
             member __.AbandonMessage(token) = 
                 token
                 |> receiver.AbandonAsync
-                |> Async.AwaitTaskEmpty
+                |> Async.AwaitTask
             
             member __.CompleteMessage(token) = 
                 token
                 |> receiver.CompleteAsync
-                |> Async.AwaitTaskEmpty
+                |> Async.AwaitTask
             
             member __.GetNextMessage(timeout) = 
                 async { 
@@ -47,48 +47,50 @@ module internal Streams =
                     match message with
                     | null -> return None
                     | message ->
-                        return Some {   Body = message.GetBody<string>(wireSerializer)
-                                        LockToken = message.LockToken
-                                        Expiry = message.ExpiresAtUtc }
+                        return Some { Body = message.Body
+                                      LockToken = "" //message.LockToken
+                                      Expiry = message.ExpiresAtUtc }
                 }
     
-    type private SessionisedQueueStream(session : MessageSession, wireSerializer : XmlObjectSerializer) =
-        inherit QueueStream(session, wireSerializer)
+    type private SessionisedQueueStream(session : IMessageSession) =
+        inherit QueueStream(session)
         interface IActorMessageStream with
-            member __.AbandonSession() = session.CloseAsync() |> Async.AwaitTaskEmpty
-            member __.RenewSessionLock() = session.RenewLockAsync() |> Async.AwaitTaskEmpty
+            member __.AbandonSession() = session.CloseAsync() |> Async.AwaitTask
+            member __.RenewSessionLock() = session.RenewSessionLockAsync() |> Async.AwaitTask
             member __.SessionId = ActorKey session.SessionId
 
-    let CreateActorMessageStream (connectionString, queueName, timeout:TimeSpan, wireSerializer) =
-        let queue = QueueClient.CreateFromConnectionString(connectionString, queueName)
+    let CreateActorMessageStream (connectionString:string, queueName, timeout:TimeSpan) =
+        let queue = QueueClient(connectionString, queueName)
         fun () -> 
-            async { 
-                let! session = queue.AcceptMessageSessionAsync(timeout) |> Async.AwaitTask |> Async.Catch
-                return
-                    match session with
-                    | Error _
-                    | Result null -> None
-                    | Result session -> Some(SessionisedQueueStream (session, wireSerializer) :> IActorMessageStream)
+            async {
+                return None
+                // let! session = queue.AcceptMessageSessionAsync(timeout) |> Async.AwaitTask |> Async.Catch
+                // return
+                //     match session with
+                //     | Error _
+                //     | Result null -> None
+                //     | Result session -> Some(SessionisedQueueStream (session) :> IActorMessageStream)
             }
 
-    let CreateQueueStream(connectionString, queueName, wireSerializer) =
-        let queueReceiver = MessagingFactory.CreateFromConnectionString(connectionString).CreateMessageReceiver(queueName)
-        QueueStream(queueReceiver, wireSerializer) :> ICloudMessageStream
+    let CreateQueueStream(connectionString, queueName) =
+        // let queueReceiver = MessagingFactory(connectionString).CreateMessageReceiver(queueName)
+        // QueueStream(queueReceiver) :> ICloudMessageStream
+        failwith "Boom!"
 
 [<AutoOpen>]
 module internal Serialization =
     /// Manages serialization / deserialization for putting messages on the queue.
     type ISerializer<'a> =
         /// Deserializes a string back into an object.
-        abstract member Deserialize : string -> 'a
+        abstract member Deserialize : byte[] -> 'a
         /// Serializes an object into a string.
-        abstract member Serialize : 'a -> string
+        abstract member Serialize : 'a -> byte[]
     
     /// A serializer using Newtonsoft's JSON .NET serializer.
     let JsonSerializer<'a>() =
         { new ISerializer<'a> with
-                member __.Deserialize(json) = JsonConvert.DeserializeObject<'a>(json)
-                member __.Serialize(data) = JsonConvert.SerializeObject(data) }
+            member __.Deserialize(json) = json |> System.Text.Encoding.UTF8.GetString |> JsonConvert.DeserializeObject<'a>
+            member __.Serialize(data) = data |> JsonConvert.SerializeObject |> System.Text.Encoding.UTF8.GetBytes }
 
 [<AutoOpen>]
 module internal Helpers =
@@ -142,7 +144,7 @@ module internal Helpers =
 /// Manages dispatching of messages to a service bus queue.
 [<AutoOpen>]
 module internal Dispatch =
-    open Microsoft.ServiceBus.Messaging
+    open Microsoft.Azure.ServiceBus
 
     /// Contains configuration details for posting messages to a cloud of agents or actors.
     type MessageDispatcher<'a> = 
@@ -158,7 +160,7 @@ module internal Dispatch =
 
     let private toBrokeredMessage options sessionId message =
         let payload = message |> options.Serializer.Serialize
-        new BrokeredMessage(payload, SessionId = defaultArg sessionId null)
+        Message(payload, SessionId = defaultArg sessionId null)
 
     let postMessages (options:MessageDispatcher<'a>) sessionId messages =
         let toBrokeredMessage = toBrokeredMessage options sessionId
@@ -168,13 +170,13 @@ module internal Dispatch =
                 |> Seq.map toBrokeredMessage 
                 |> Seq.toArray
             
-            let queueClient = QueueClient.CreateFromConnectionString(options.ServiceBusConnectionString, options.QueueName)
-            do! brokeredMessages |> queueClient.SendBatchAsync |> Async.AwaitTaskEmpty
+            let queueClient = QueueClient(options.ServiceBusConnectionString, options.QueueName)
+            do! brokeredMessages |> queueClient.SendAsync |> Async.AwaitTask
         }
 
     let postMessage (options:MessageDispatcher<'a>) sessionId message =
         async { 
-            use brokeredMessage = message |> toBrokeredMessage options sessionId
-            let queueClient = QueueClient.CreateFromConnectionString(options.ServiceBusConnectionString, options.QueueName)
-            do! brokeredMessage |> queueClient.SendAsync |> Async.AwaitTaskEmpty
+            let brokeredMessage = message |> toBrokeredMessage options sessionId
+            let queueClient = QueueClient(options.ServiceBusConnectionString, options.QueueName)
+            do! [| brokeredMessage |] |> queueClient.SendAsync |> Async.AwaitTask
         }
