@@ -1,6 +1,6 @@
 source http://nuget.org/api/v2
-framework: netstandard20
-generate_load_scripts: true
+framework: netstandard2.0, netcoreapp2.0
+#generate_load_scripts: true
 redirects: force
 
 nuget Microsoft.Azure.ServiceBus
@@ -12,8 +12,7 @@ nuget Unquote
 
 group Build
 source http://nuget.org/api/v2
-framework: netstandard20
-generate_load_scripts: true
+#generate_load_scripts: true
 
 nuget SourceLink.Fake
 nuget FSharp.Formatting
