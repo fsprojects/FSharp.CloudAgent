@@ -3,7 +3,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>FSharp.AzureActors</RootNamespace>
     <AssemblyName>FSharp.CloudAgent</AssemblyName>
-    <TargetFramework>netstandard20</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Name>FSharp.CloudAgent</Name>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
